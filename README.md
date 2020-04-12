@@ -1,4 +1,4 @@
-# OpenCV 3.4.2 (packaged by [OpenPnP](http://openpnp.org))
+# OpenCV 4.3.0 (packaged by [OpenPnP](http://openpnp.org))
 
 [OpenCV](http://opencv.org) Java bindings packaged with native libraries, seamlessly delivered as a turn-key Maven dependency.
 
@@ -48,7 +48,7 @@ OpenPnP's OpenCV package is added to your project as any other dependency.
     <dependency>
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
-      <version>3.4.2-1</version>
+      <version>4.3.0-0</version>
     </dependency>
     
     <!-- ... -->
@@ -76,7 +76,7 @@ This call will—exactly once per class loader—first attempt to load from the 
 
 This approach keeps most clients decoupled from Pattern's package and loader. As long as this is done sufficiently early in execution, any library using the OpenCV Java bindings can use the usual load call as documented by the OpenCV project.
 
-There are, however, cases where Java class loaders are frequently changing (_e.g._, application servers, SBT projects, Scala worksheets), and [spurious attempts to load the native library will result in JNI errors](https://github.com/PatternConsulting/opencv/issues/7). As a partial work-around, this package offers an alternative API, [`nu.pattern.OpenCV.loadLocal()`](https://github.com/PatternConsulting/opencv/blob/master/src/main/java/nu/pattern/OpenCV.java), which—also exactly once per class loader—extracts the binary appropriate for the runtime platform, and passes it to `System#load(String)`. Ultimately, this may eventually load the library redundantly in the same JVM, which could be unsafe in production. Use with caution and understand the implications.
+There are, however, cases where Java class loaders are frequently changing (_e.g._, application servers, SBT projects, Scala worksheets), and [spurious attempts to load the native library will result in JNI errors](https://github.com/PatternConsulting/opencv/issues/7). As a partial work-around, this package offers an alternative API, [`nu.pattern.OpenCV.loadLocally()`](https://github.com/PatternConsulting/opencv/blob/master/src/main/java/nu/pattern/OpenCV.java), which—also exactly once per class loader—extracts the binary appropriate for the runtime platform, and passes it to `System#load(String)`. Ultimately, this may eventually load the library redundantly in the same JVM, which could be unsafe in production. Use with caution and understand the implications.
 
 It's recommended developers using any JNI library read further:
 
@@ -106,7 +106,6 @@ OS | Architecture
 OS X | x86_32
 OS X | x86_64
 Linux | x86_64
-Linux | x86_32
 Windows | x86_32
 Windows | x86_64
 
