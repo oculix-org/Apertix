@@ -395,7 +395,18 @@
 -- Performing Test HAVE_C_WNO_UNUSED_VARIABLE - Success
 -- Performing Test HAVE_C_WNO_UNUSED_FUNCTION
 -- Performing Test HAVE_C_WNO_UNUSED_FUNCTION - Success
--- Found OpenJPEG: openjp2 (found version "2.3.1")
+-- Performing Test HAVE_C_WNO_IMPLICIT_FUNCTION_DECLARATION
+-- Performing Test HAVE_C_WNO_IMPLICIT_FUNCTION_DECLARATION - Success
+-- Performing Test HAVE_C_WNO_UNINITIALIZED
+-- Performing Test HAVE_C_WNO_UNINITIALIZED - Success
+-- Performing Test HAVE_C_WNO_UNUSED_BUT_SET_PARAMETER
+-- Performing Test HAVE_C_WNO_UNUSED_BUT_SET_PARAMETER - Failed
+-- Performing Test HAVE_C_WNO_STRICT_OVERFLOW
+-- Performing Test HAVE_C_WNO_STRICT_OVERFLOW - Success
+-- Performing Test HAVE_C_WNO_POINTER_COMPARE
+-- Performing Test HAVE_C_WNO_POINTER_COMPARE - Failed
+-- Performing Test HAVE_C_WNO_ABSOLUTE_VALUE
+-- Performing Test HAVE_C_WNO_ABSOLUTE_VALUE - Success
 -- Performing Test HAVE_CXX_WNO_SHADOW
 -- Performing Test HAVE_CXX_WNO_SHADOW - Success
 -- Performing Test HAVE_CXX_WNO_UNUSED
@@ -500,10 +511,10 @@
 -- Performing Test HAVE_OBJCXX_FOBJC_EXCEPTIONS - Success
 -- 
 -- General configuration for OpenCV 4.3.0 =====================================
---   Version control:               acb81f4-dirty
+--   Version control:               ec2c0a1-dirty
 -- 
 --   Platform:
---     Timestamp:                   2020-04-12T15:57:24Z
+--     Timestamp:                   2020-04-14T00:41:05Z
 --     Host:                        Darwin 19.3.0 x86_64
 --     CMake:                       3.13.3
 --     CMake generator:             Unix Makefiles
@@ -534,8 +545,8 @@
 --     Linker flags (Debug):        -Wl,-dead_strip  
 --     ccache:                      NO
 --     Precompiled headers:         NO
---     Extra dependencies:          -framework OpenCL /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Accelerate.framework ade -framework Cocoa openjp2
---     3rdparty dependencies:       ittnotify libprotobuf zlib libjpeg-turbo libwebp libpng libtiff IlmImf quirc ippiw ippicv
+--     Extra dependencies:          -framework OpenCL /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Accelerate.framework ade -framework Cocoa
+--     3rdparty dependencies:       ittnotify libprotobuf zlib libjpeg-turbo libwebp libpng libtiff libjasper IlmImf quirc ippiw ippicv
 -- 
 --   OpenCV modules:
 --     To be built:                 calib3d core dnn features2d flann gapi highgui imgcodecs imgproc java ml objdetect photo stitching ts video videoio
@@ -556,7 +567,7 @@
 --     WEBP:                        build (ver encoder: 0x020f)
 --     PNG:                         build (ver 1.6.37)
 --     TIFF:                        build (ver 42 - 4.0.10)
---     JPEG 2000:                   OpenJPEG (ver 2.3.1)
+--     JPEG 2000:                   build Jasper (ver 1.900.1)
 --     OpenEXR:                     build (ver 2.3.0)
 --     HDR:                         YES
 --     SUNRASTER:                   YES
@@ -578,6 +589,7 @@
 --     Intel IPP IW:                sources (2020.0.0)
 --               at:                /Users/jason/Projects/openpnp/opencv/opencv/opencv-4.3.0/target/osx/x86_64/3rdparty/ippicv/ippicv_mac/iw
 --     Lapack:                      YES (/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Accelerate.framework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Accelerate.framework)
+--     Eigen:                       YES (ver ..)
 --     Custom HAL:                  NO
 --     Protobuf:                    build (3.5.1)
 -- 
