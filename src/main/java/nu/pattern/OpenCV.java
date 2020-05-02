@@ -12,6 +12,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -185,6 +186,12 @@ public class OpenCV {
    * @see <a href="http://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom">Initialization-on-demand holder idiom</a>
    */
   private static class SharedLoader {
+    // Class loader error messages indicating OpenCV is not found on java.library.path
+    private static final List<String> errorMessages = Arrays.asList(
+            String.format("no %s in java.library.path", Core.NATIVE_LIBRARY_NAME),
+            String.format("%s (Not found in java.library.path)", Core.NATIVE_LIBRARY_NAME)
+    );
+
     private Path libraryPath;
 
     private SharedLoader() {
@@ -194,8 +201,7 @@ public class OpenCV {
       } catch (final UnsatisfiedLinkError ule) {
 
         /* Only update the library path and load if the original error indicates it's missing from the library path. */
-        String errorFragment = String.format("no %s in java.library.path", Core.NATIVE_LIBRARY_NAME);
-        if (ule == null || !ule.getMessage().contains(errorFragment)) {
+        if (ule == null || !openCVNotFoundInJavaLibraryPath(ule.getMessage())) {
           logger.log(Level.FINEST, String.format("Encountered unexpected loading error."), ule);
           throw ule;
         }
@@ -208,6 +214,21 @@ public class OpenCV {
 
         logger.log(Level.FINEST, "OpenCV library \"{0}\" loaded from extracted copy at \"{1}\".", new Object[]{Core.NATIVE_LIBRARY_NAME, System.mapLibraryName(Core.NATIVE_LIBRARY_NAME)});
       }
+    }
+
+    /**
+     * Check if any error fragment is contained in the errorMessage
+     * @param errorMessage the message to check
+     * @return true if any error fragment matches, false otherwise
+     */
+    private boolean openCVNotFoundInJavaLibraryPath(String errorMessage) {
+      for (String errorFragment : errorMessages) {
+        if (errorMessage.contains(errorFragment)) {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     /**
