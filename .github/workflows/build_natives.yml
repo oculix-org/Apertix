@@ -24,7 +24,7 @@ jobs:
       - name: Build OpenCV
         run: |
           wget https://github.com/opencv/opencv/archive/4.5.1.zip
-          tar -xzf 4.5.1.zip
+          unzip opencv-4.5.1
           cd opencv-4.5.1
           mkdir build
           cmake -D BUILD_SHARED_LIBS=OFF -D WITH_EIGEN=OFF -D WITH_FFMPEG=OFF -D WITH_JAVA=ON ..
