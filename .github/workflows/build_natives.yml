@@ -2,6 +2,7 @@
 # https://github.com/openpnp/opencv/pull/56
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
 # https://github.com/openpnp/opencv/actions
+# https://github.com/openpnp/opencv/pull/59/files
 
 name: Build OpenCV Native Libraries
 
@@ -14,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, macos-10.15]
+        os: [ubuntu-18.04, macos-10.15]
         java: [15]
         # java: [8, 9, 10, 11, 12, 13, 14, 15]
 
@@ -27,27 +28,27 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Build OpenCV
-        run: |
-          wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
-          unzip 4.5.1 > /dev/null
-          cd opencv-4.5.1
-          mkdir build
-          cd build
-          cmake \
-            -D BUILD_TESTING=OFF \
-            -D BUILD_TESTING_SHARED=OFF \
-            -D BUILD_TESTING_STATIC=OFF \
-            -D OPENCV_GENERATE_PKGCONFIG=ON \
-            -D BUILD_EXAMPLES=OFF \
-            -D BUILD_DOCS=OFF \
-            -D BUILD_FAT_JAVA_LIB=ON \
-            -D BUILD_JAVA=ON \
-            -D OPENCV_ENABLE_NONFREE=ON \
-            -D CMAKE_BUILD_TYPE=RELEASE \
-            -D BUILD_SHARED_LIBS=OFF ..
-          make -j8
-          find . -name libopencv_java*
+      # - name: Build OpenCV
+      #   run: |
+      #     wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
+      #     unzip 4.5.1 > /dev/null
+      #     cd opencv-4.5.1
+      #     mkdir build
+      #     cd build
+      #     cmake \
+      #       -D BUILD_TESTING=OFF \
+      #       -D BUILD_TESTING_SHARED=OFF \
+      #       -D BUILD_TESTING_STATIC=OFF \
+      #       -D OPENCV_GENERATE_PKGCONFIG=ON \
+      #       -D BUILD_EXAMPLES=OFF \
+      #       -D BUILD_DOCS=OFF \
+      #       -D BUILD_FAT_JAVA_LIB=ON \
+      #       -D BUILD_JAVA=ON \
+      #       -D OPENCV_ENABLE_NONFREE=ON \
+      #       -D CMAKE_BUILD_TYPE=RELEASE \
+      #       -D BUILD_SHARED_LIBS=OFF ..
+      #     make -j8
+      #     find . -name libopencv_java*
 
       - name: Build with Maven
         run: mvn -B test
