@@ -10,7 +10,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest]
-        java: [8, 9, 10, 11, 12, 13, 14, 15]
+        java: [15]
+        # java: [8, 9, 10, 11, 12, 13, 14, 15]
 
     steps:
       - name: Checkout Repo
@@ -28,9 +29,20 @@ jobs:
           cd opencv-4.5.1
           mkdir build
           cd build
-          cmake -D BUILD_SHARED_LIBS=OFF -D WITH_EIGEN=OFF -D WITH_FFMPEG=OFF -D WITH_JAVA=ON ..
+          cmake \
+            -D BUILD_TESTING=OFF \
+            -D BUILD_TESTING_SHARED=OFF \
+            -D BUILD_TESTING_STATIC=OFF \
+            -D OPENCV_GENERATE_PKGCONFIG=ON \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D BUILD_JAVA=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            -D BUILD_SHARED_LIBS=OFF ..
           make -j8
-
+          find . -name libopencv_java*
 
       # - name: Build with Maven
       #   run: mvn -B test
