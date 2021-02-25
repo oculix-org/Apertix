@@ -1,0 +1,35 @@
+name: Build OpenCV Native Libraries
+
+on: 
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest]
+        java: [8, 9, 10, 11, 12, 13, 14, 15]
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/4.5.1.zip
+          tar -xzf 4.5.1.zip
+          cd opencv-4.5.1
+          mkdir build
+          cmake -D BUILD_SHARED_LIBS=OFF -D WITH_EIGEN=OFF -D WITH_FFMPEG=OFF -D WITH_JAVA=ON ..
+          make -j8
+
+
+      # - name: Build with Maven
+      #   run: mvn -B test
