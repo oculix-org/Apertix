@@ -1,3 +1,8 @@
+# https://github.com/marketplace/actions/run-on-architecture
+# https://github.com/openpnp/opencv/pull/56
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
+# https://github.com/openpnp/opencv/actions
+
 name: Build OpenCV Native Libraries
 
 on: 
@@ -9,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest]
+        os: [ubuntu-16.04, macos-10.15]
         java: [15]
         # java: [8, 9, 10, 11, 12, 13, 14, 15]
 
@@ -44,5 +49,5 @@ jobs:
           make -j8
           find . -name libopencv_java*
 
-      # - name: Build with Maven
-      #   run: mvn -B test
+      - name: Build with Maven
+        run: mvn -B test
