@@ -7,26 +7,13 @@
 # https://github.com/actions/upload-artifact
 # https://github.com/actions/download-artifact
 
-# This action builds (or extracts) native libraries for all of the supported
-# platforms and uploads them to Github releases. 
-
 # TODO
 # - only run on tags
 # - extract opencv version from pom.xml for use in this action
-# - upload artifacts (or can we somehow "get" them from another action?)
-# - create a second action or job that pulls together all the artifacts
-#   from this one and creates the final jar.
 # - The final test should be running the tests with the fully built
 #   jar on the various platforms. This will ensure that, for instance,
 #   there is not a shared library being referenced in one env. that isn't
 #   in another.
-
-# When this is finished, the release process should be as simple as
-# changing the OpenCV.java, pom.xml, README, and this file to
-# update versions and then push a tag.
-
-# The builds that will get released only need to run on one version of the OS
-# and Java. Then, in a second job, they should be tested on all the versions.
 
 name: Build OpenPnP OpenCV Distribution
 
@@ -35,6 +22,9 @@ on:
   pull_request:
 
 jobs:
+
+  # Build native libraries for Linux and Mac. Uploads the libraries
+  # as artifacts which are used in subsequent jobs.
   build_libs:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -95,6 +85,9 @@ jobs:
             opencv-4.5.1/build/lib/libopencv_java451.so
             opencv-4.5.1/build/lib/libopencv_java451.dylib
 
+  # Downloads the Windows distribution from OpenCV, extracts it and uploads
+  # the native libraries as artifacts for use by subsequent jobs. This is
+  # in leiu of building the native libraries on Windows.
   extract_windows:
     runs-on: ubuntu-18.04
 
@@ -111,6 +104,8 @@ jobs:
           name: windows-2016
           path: opencv/build/java
 
+  # Download and combine the artifacts from the above jobs and build the
+  # distribution jar. Uploads it as an artifact for subsequent steps.
   build:
     needs: [build_libs, extract_windows]
     runs-on: ${{ matrix.os }}
@@ -140,7 +135,7 @@ jobs:
           cp windows-2016/x64/opencv_java451.dll src/main/resources/nu/pattern/opencv/windows/x86_64
 
       - name: Build with Maven
-        run: mvn -B package test
+        run: mvn -B install
 
       - name: Upload Distribution
         uses: actions/upload-artifact@v2
@@ -148,14 +143,28 @@ jobs:
           name: dist
           path: target/opencv*
 
-  # test:
-  #   needs: build
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-18.04, macos-10.15, windows-2016]
-  #       java: [8, 9, 10, 11, 12, 13, 14, 15]
+  test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2016]
+        java: [8, 9, 10, 11, 12, 13, 14, 15]
 
-  #   steps:
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Download Distribution
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+
+      - name: Run Test
+        run: java -cp opencv-4.5.1-0.jar nu.pattern.PrintVersion
+
+  # distribute:
+  #   needs: test
+  #   runs-on: ubuntu-18.04
