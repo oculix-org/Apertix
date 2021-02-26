@@ -28,7 +28,7 @@
 # The builds that will get released only need to run on one version of the OS
 # and Java. Then, in a second job, they should be tested on all the versions.
 
-name: Build OpenCV Native Libraries
+name: Build OpenPnP OpenCV Distribution
 
 on: 
   push:
@@ -95,8 +95,24 @@ jobs:
             opencv-4.5.1/build/lib/libopencv_java451.so
             opencv-4.5.1/build/lib/libopencv_java451.dylib
 
+  extract_windows:
+    runs-on: windows-2016
+
+    steps:
+      - name: Download Windows Distribution
+        run: wget -O opencv-4.5.1-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
+
+      - name: Extract Windows Distribution
+        run: 7z x opencv-4.5.1-vc14_vc15.exe
+          
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v2
+        with: 
+          name: windows-2016
+          path: opencv/build/java
+
   build:
-    needs: build_libs
+    needs: [build_libs, extract_windows]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -112,16 +128,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-
-      - name: Download Windows Distribution
-        uses: wei/wget@v1
-        with:
-          args: -O opencv-4.5.1-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
-
-      - name: Extract Windows Distribution
-        uses: edgarrc/action-7z@v1.0.4
-        with:
-          args: 7z x opencv-4.5.1-vc14_vc15.exe
           
       - name: Copy Binaries
         run: |
