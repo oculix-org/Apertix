@@ -48,9 +48,9 @@ jobs:
 
       # - name: Build OpenCV
       #   run: |
-      #     wget https://github.com/opencv/opencv/archive/${{ OPENCV_VERSION }}.zip > /dev/null
-      #     unzip ${{ OPENCV_VERSION }} > /dev/null
-      #     cd opencv-${{ OPENCV_VERSION }}
+      #     wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+      #     unzip ${{ env.OPENCV_VERSION }} > /dev/null
+      #     cd opencv-${{ env.OPENCV_VERSION }}
       #     mkdir build
       #     cd build
       #     cmake \
@@ -69,14 +69,14 @@ jobs:
 
       - name: Download Test Libraries (Temporary)
         run: |
-          wget https://github.com/openpnp/opencv/releases/download/test1/opencv-${{ OPENCV_VERSION }}.zip
-          unzip opencv-${{ OPENCV_VERSION }}.zip
+          wget https://github.com/openpnp/opencv/releases/download/test1/opencv-${{ env.OPENCV_VERSION }}.zip
+          unzip opencv-${{ env.OPENCV_VERSION }}.zip
 
       - name: Copy Libraries
         run: |
-          cp opencv-${{ OPENCV_VERSION }}/build/bin/opencv-${{ OPENCV_VERSION_SHORT }}.jar upstream || :
-          cp opencv-${{ OPENCV_VERSION }}/build/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
-          cp opencv-${{ OPENCV_VERSION }}/build/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
 
       - name: Build with Maven
         run: mvn -B test
@@ -86,9 +86,9 @@ jobs:
         with: 
           name: ${{ matrix.os }}
           path: |
-            opencv-${{ OPENCV_VERSION }}/build/bin/opencv-${{ OPENCV_VERSION_SHORT }}.jar
-            opencv-${{ OPENCV_VERSION }}/build/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.so
-            opencv-${{ OPENCV_VERSION }}/build/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.dylib
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
 
   # Downloads the Windows distribution from OpenCV, extracts it and uploads
   # the native libraries as artifacts for use by subsequent jobs. This is
@@ -98,10 +98,10 @@ jobs:
 
     steps:
       - name: Download Windows Distribution
-        run: wget -O opencv-${{ OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ OPENCV_VERSION }}/opencv-${{ OPENCV_VERSION }}-vc14_vc15.exe/download
+        run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
 
       - name: Extract Windows Distribution
-        run: 7z x opencv-${{ OPENCV_VERSION }}-vc14_vc15.exe
+        run: 7z x opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe
           
       - name: Upload Libraries
         uses: actions/upload-artifact@v2
@@ -133,11 +133,11 @@ jobs:
 
       - name: Copy Binaries
         run: |
-          cp macos-10.15/bin/opencv-${{ OPENCV_VERSION_SHORT }}.jar upstream
-          cp macos-10.15/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
-          cp ubuntu-18.04/lib/libopencv_java${{ OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
-          cp windows-2016/x86/opencv_java${{ OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
-          cp windows-2016/x64/opencv_java${{ OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_64
+          cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_64
 
       - name: Build with Maven
         run: mvn -B install
@@ -168,7 +168,7 @@ jobs:
           name: dist
 
       - name: Run Test
-        run: java -cp opencv-${{ POM_VERSION }}.jar nu.pattern.PrintVersion
+        run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
 
   # distribute:
   #   needs: test
