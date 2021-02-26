@@ -35,7 +35,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build_libs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -73,19 +73,49 @@ jobs:
       #       -D BUILD_SHARED_LIBS=OFF ..
       #     make -j8
 
-      # - name: Upload Binary
-      #   uses: actions/upload-artifact@v2
-      #   with: 
-      #     name: ${{ matrix.os }}
-      #     path: |
-      #       opencv-4.5.1/build/bin/opencv-451.jar
-      #       opencv-4.5.1/build/lib/libopencv_java451.so
-      #       opencv-4.5.1/build/lib/libopencv_java451.dylib
-
-      - name: Download Test Binaries (Temporary)
+      - name: Download Test Libraries (Temporary)
         run: |
           wget https://github.com/openpnp/opencv/releases/download/test1/opencv-4.5.1.zip
           unzip opencv-4.5.1.zip
+
+      - name: Copy Libraries
+        run: |
+          cp opencv-4.5.1/build/bin/opencv-451.jar upstream || :
+          cp opencv-4.5.1/build/lib/libopencv_java451.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
+          cp opencv-4.5.1/build/lib/libopencv_java451.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
+
+      - name: Build with Maven
+        run: mvn -B test
+
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{ matrix.os }}
+          path: |
+            opencv-4.5.1/build/lib/libopencv_java451.so
+            opencv-4.5.1/build/lib/libopencv_java451.dylib
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2016]
+        # java: [8, 9, 10, 11, 12, 13, 14, 15]
+        java: [8]
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Download and Extract Windows Distribution
+        run: |
+          wget https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
+          7z x opencv-4.5.1-vc14_vc15.exe
 
       - name: Copy Binaries
         run: |
@@ -95,5 +125,6 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B test
+
 
 
