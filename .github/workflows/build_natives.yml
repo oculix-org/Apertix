@@ -96,6 +96,7 @@ jobs:
             opencv-4.5.1/build/lib/libopencv_java451.dylib
 
   build:
+    needs: build_libs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -114,7 +115,7 @@ jobs:
 
       - name: Download and Extract Windows Distribution
         run: |
-          wget https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
+          wget -O opencv-4.5.1-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
           7z x opencv-4.5.1-vc14_vc15.exe
 
       - name: Copy Binaries
