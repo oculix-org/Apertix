@@ -41,7 +41,6 @@ jobs:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
         java: [8]
-        # java: [8, 9, 10, 11, 12, 13, 14, 15]
 
     steps:
       - name: Checkout Repo
@@ -92,6 +91,7 @@ jobs:
         with: 
           name: ${{ matrix.os }}
           path: |
+            opencv-4.5.1/build/bin/opencv-451.jar
             opencv-4.5.1/build/lib/libopencv_java451.so
             opencv-4.5.1/build/lib/libopencv_java451.dylib
 
@@ -116,8 +116,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-10.15, windows-2016]
-        # java: [8, 9, 10, 11, 12, 13, 14, 15]
+        os: [ubuntu-18.04]
         java: [8]
 
     steps:
@@ -132,17 +131,28 @@ jobs:
       - name: Download Libraries
         uses: actions/download-artifact@v2
 
+      - name: Copy Binaries
+        run: |
+          cp macos-10.15/bin/opencv-451.jar upstream
+          cp macos-10.15/lib/libopencv_java451.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp ubuntu-18.04/lib/libopencv_java451.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp windows-2016/x86/opencv_java451.dll src/main/resources/nu/pattern/opencv/windows/x86_32
+          cp windows-2016/x64/opencv_java451.dll src/main/resources/nu/pattern/opencv/windows/x86_64
+
       - name: Display structure of downloaded files
         run: ls -R          
         
-      - name: Copy Binaries
-        run: |
-          cp opencv-4.5.1/build/bin/opencv-451.jar upstream || :
-          cp opencv-4.5.1/build/lib/libopencv_java451.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
-          cp opencv-4.5.1/build/lib/libopencv_java451.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
-
       - name: Build with Maven
         run: mvn -B test
 
+  # test:
+  #   needs: build
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-18.04, macos-10.15, windows-2016]
+  #       java: [8, 9, 10, 11, 12, 13, 14, 15]
 
-
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@v2
