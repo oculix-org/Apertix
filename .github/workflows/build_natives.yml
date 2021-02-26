@@ -96,7 +96,7 @@ jobs:
             opencv-4.5.1/build/lib/libopencv_java451.dylib
 
   extract_windows:
-    runs-on: windows-2016
+    runs-on: ubuntu-18.04
 
     steps:
       - name: Download Windows Distribution
