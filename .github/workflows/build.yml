@@ -139,11 +139,14 @@ jobs:
           cp windows-2016/x86/opencv_java451.dll src/main/resources/nu/pattern/opencv/windows/x86_32
           cp windows-2016/x64/opencv_java451.dll src/main/resources/nu/pattern/opencv/windows/x86_64
 
-      - name: Display structure of downloaded files
-        run: ls -R          
-        
       - name: Build with Maven
-        run: mvn -B test
+        run: mvn -B package test
+
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v2
+        with: 
+          name: dist
+          path: target/opencv*
 
   # test:
   #   needs: build
