@@ -78,16 +78,18 @@ jobs:
       #   with: 
       #     name: ${{ matrix.os }}
       #     path: |
+      #       opencv-4.5.1/build/bin/opencv-451.jar
       #       opencv-4.5.1/build/lib/libopencv_java451.so
       #       opencv-4.5.1/build/lib/libopencv_java451.dylib
 
-      - name: Temp Test Binaries
+      - name: Download Test Binaries (Temporary)
         run: |
           wget https://github.com/openpnp/opencv/releases/download/test1/opencv-4.5.1.zip
           unzip opencv-4.5.1.zip
 
       - name: Copy Binaries
         run: |
+          cp opencv-4.5.1/build/bin/opencv-451.jar upstream || :
           cp opencv-4.5.1/build/lib/libopencv_java451.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
           cp opencv-4.5.1/build/lib/libopencv_java451.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
 
