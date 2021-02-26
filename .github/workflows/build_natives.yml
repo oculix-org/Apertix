@@ -81,8 +81,15 @@ jobs:
         with: 
           name: ${{ matrix.os }}
           path: |
-            lib/libopencv_java451.so
-            lib/libopencv_java451.dylib
+            opencv-4.5.1/build/lib/libopencv_java451.so
+            opencv-4.5.1/build/lib/libopencv_java451.dylib
+
+      - name: Copy Binaries
+        run: |
+          cp opencv-4.5.1/build/lib/libopencv_java451.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
+          cp opencv-4.5.1/build/lib/libopencv_java451.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
 
       - name: Build with Maven
         run: mvn -B test
+
+
