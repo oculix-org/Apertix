@@ -3,6 +3,30 @@
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
 # https://github.com/openpnp/opencv/actions
 # https://github.com/openpnp/opencv/pull/59/files
+# https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs?rq=1
+# https://github.com/actions/upload-artifact
+# https://github.com/actions/download-artifact
+
+# This action builds (or extracts) native libraries for all of the supported
+# platforms and uploads them to Github releases. 
+
+# TODO
+# - only run on tags
+# - extract opencv version from pom.xml for use in this action
+# - upload artifacts (or can we somehow "get" them from another action?)
+# - create a second action or job that pulls together all the artifacts
+#   from this one and creates the final jar.
+# - The final test should be running the tests with the fully built
+#   jar on the various platforms. This will ensure that, for instance,
+#   there is not a shared library being referenced in one env. that isn't
+#   in another.
+
+# When this is finished, the release process should be as simple as
+# changing the OpenCV.java, pom.xml, README, and this file to
+# update versions and then push a tag.
+
+# The builds that will get released only need to run on one version of the OS
+# and Java. Then, in a second job, they should be tested on all the versions.
 
 name: Build OpenCV Native Libraries
 
@@ -16,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
-        java: [15]
+        java: [8]
         # java: [8, 9, 10, 11, 12, 13, 14, 15]
 
     steps:
@@ -28,27 +52,35 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      # - name: Build OpenCV
-      #   run: |
-      #     wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
-      #     unzip 4.5.1 > /dev/null
-      #     cd opencv-4.5.1
-      #     mkdir build
-      #     cd build
-      #     cmake \
-      #       -D BUILD_TESTING=OFF \
-      #       -D BUILD_TESTING_SHARED=OFF \
-      #       -D BUILD_TESTING_STATIC=OFF \
-      #       -D OPENCV_GENERATE_PKGCONFIG=ON \
-      #       -D BUILD_EXAMPLES=OFF \
-      #       -D BUILD_DOCS=OFF \
-      #       -D BUILD_FAT_JAVA_LIB=ON \
-      #       -D BUILD_JAVA=ON \
-      #       -D OPENCV_ENABLE_NONFREE=ON \
-      #       -D CMAKE_BUILD_TYPE=RELEASE \
-      #       -D BUILD_SHARED_LIBS=OFF ..
-      #     make -j8
-      #     find . -name libopencv_java*
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
+          unzip 4.5.1 > /dev/null
+          cd opencv-4.5.1
+          mkdir build
+          cd build
+          cmake \
+            -D BUILD_TESTING=OFF \
+            -D BUILD_TESTING_SHARED=OFF \
+            -D BUILD_TESTING_STATIC=OFF \
+            -D OPENCV_GENERATE_PKGCONFIG=ON \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D BUILD_JAVA=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            -D BUILD_SHARED_LIBS=OFF ..
+          make -j8
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{ matrix.os }}
+          path: |
+            lib/libopencv_java451.so
+            lib/libopencv_java451.dylib
+        run: find . -name libopencv_java*
 
       - name: Build with Maven
         run: mvn -B test
