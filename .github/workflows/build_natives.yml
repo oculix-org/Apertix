@@ -113,11 +113,16 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Download and Extract Windows Distribution
-        run: |
-          wget -O opencv-4.5.1-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
-          7z x opencv-4.5.1-vc14_vc15.exe
+      - name: Download Windows Distribution
+        uses: wei/wget@v1
+        with:
+          args: -O opencv-4.5.1-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/4.5.1/opencv-4.5.1-vc14_vc15.exe/download
 
+      - name: Extract Windows Distribution
+        uses: edgarrc/action-7z@v1.0.4
+        with:
+          args: 7z x opencv-4.5.1-vc14_vc15.exe
+          
       - name: Copy Binaries
         run: |
           cp opencv-4.5.1/build/bin/opencv-451.jar upstream || :
