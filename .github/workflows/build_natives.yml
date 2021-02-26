@@ -52,37 +52,39 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Build OpenCV
+      # - name: Build OpenCV
+      #   run: |
+      #     wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
+      #     unzip 4.5.1 > /dev/null
+      #     cd opencv-4.5.1
+      #     mkdir build
+      #     cd build
+      #     cmake \
+      #       -D BUILD_TESTING=OFF \
+      #       -D BUILD_TESTING_SHARED=OFF \
+      #       -D BUILD_TESTING_STATIC=OFF \
+      #       -D OPENCV_GENERATE_PKGCONFIG=ON \
+      #       -D BUILD_EXAMPLES=OFF \
+      #       -D BUILD_DOCS=OFF \
+      #       -D BUILD_FAT_JAVA_LIB=ON \
+      #       -D BUILD_JAVA=ON \
+      #       -D OPENCV_ENABLE_NONFREE=ON \
+      #       -D CMAKE_BUILD_TYPE=RELEASE \
+      #       -D BUILD_SHARED_LIBS=OFF ..
+      #     make -j8
+
+      # - name: Upload Binary
+      #   uses: actions/upload-artifact@v2
+      #   with: 
+      #     name: ${{ matrix.os }}
+      #     path: |
+      #       opencv-4.5.1/build/lib/libopencv_java451.so
+      #       opencv-4.5.1/build/lib/libopencv_java451.dylib
+
+      - name: Temp Test Binaries
         run: |
-          wget https://github.com/opencv/opencv/archive/4.5.1.zip > /dev/null
-          unzip 4.5.1 > /dev/null
-          cd opencv-4.5.1
-          mkdir build
-          cd build
-          cmake \
-            -D BUILD_TESTING=OFF \
-            -D BUILD_TESTING_SHARED=OFF \
-            -D BUILD_TESTING_STATIC=OFF \
-            -D OPENCV_GENERATE_PKGCONFIG=ON \
-            -D BUILD_EXAMPLES=OFF \
-            -D BUILD_DOCS=OFF \
-            -D BUILD_FAT_JAVA_LIB=ON \
-            -D BUILD_JAVA=ON \
-            -D OPENCV_ENABLE_NONFREE=ON \
-            -D CMAKE_BUILD_TYPE=RELEASE \
-            -D BUILD_SHARED_LIBS=OFF ..
-          make -j8
-
-      - name: List Binaries
-        run: find . -name libopencv_java*
-
-      - name: Upload Binary
-        uses: actions/upload-artifact@v2
-        with: 
-          name: ${{ matrix.os }}
-          path: |
-            opencv-4.5.1/build/lib/libopencv_java451.so
-            opencv-4.5.1/build/lib/libopencv_java451.dylib
+          wget https://github.com/openpnp/opencv/suites/2127852682/artifacts/43444713
+          https://github.com/openpnp/opencv/suites/2127852682/artifacts/43444714
 
       - name: Copy Binaries
         run: |
