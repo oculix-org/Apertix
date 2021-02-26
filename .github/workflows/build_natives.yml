@@ -83,8 +83,8 @@ jobs:
 
       - name: Temp Test Binaries
         run: |
-          wget https://github.com/openpnp/opencv/suites/2127852682/artifacts/43444713
-          https://github.com/openpnp/opencv/suites/2127852682/artifacts/43444714
+          wget https://github.com/openpnp/opencv/releases/download/test1/opencv-4.5.1.zip
+          unzip opencv-4.5.1.zip
 
       - name: Copy Binaries
         run: |
