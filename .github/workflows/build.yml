@@ -52,7 +52,7 @@ jobs:
 
           run: |
             apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven
+            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
 
             # TODO: I'd like to get this path automatically somehow. I think it might be
             # in /etc/environment but sourcing it didn't seem to work. Need to figure out
