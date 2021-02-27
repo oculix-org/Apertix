@@ -35,18 +35,25 @@ jobs:
           arch: aarch64
           distro: ubuntu18.04
           run: |
-            cat /proc/cpuinfo
+            apt-get update -q -y
+            apt-get install -q -y openjdk-8-jdk ant maven
+            java -version
+            ant -version
+            mvn -version
 
-  build_armv7: 
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: uraimo/run-on-arch-action@v2.0.9
-        with:
-          arch: armv7
-          distro: ubuntu18.04
-          run: |
-            cat /proc/cpuinfo
-            
+
+
+
+  # build_armv7: 
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #     - uses: uraimo/run-on-arch-action@v2.0.9
+  #       with:
+  #         arch: armv7
+  #         distro: ubuntu18.04
+  #         run: |
+  #           cat /proc/cpuinfo
+
 # apt-get update -q -y
 # apt-get install -q -y git wget cmake unzip build-essential openjdk-8-jdk
 # java -version
