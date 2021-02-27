@@ -30,34 +30,45 @@ jobs:
   build_arm64: 
     runs-on: ubuntu-18.04
     steps:
-      - name: Run on Arm64
-        uses: uraimo/run-on-arch-action@v2.0.9
+      - uses: uraimo/run-on-arch-action@v2.0.9
         with:
           arch: aarch64
           distro: ubuntu18.04
           run: |
-            apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential openjdk-8-jdk
-            java -version
-            wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-            unzip ${{ env.OPENCV_VERSION }} > /dev/null
-            cd opencv-${{ env.OPENCV_VERSION }}
-            mkdir build
-            cd build
-            cmake \
-              -D BUILD_TESTING=OFF \
-              -D BUILD_TESTING_SHARED=OFF \
-              -D BUILD_TESTING_STATIC=OFF \
-              -D OPENCV_GENERATE_PKGCONFIG=ON \
-              -D BUILD_EXAMPLES=OFF \
-              -D BUILD_DOCS=OFF \
-              -D BUILD_FAT_JAVA_LIB=ON \
-              -D BUILD_JAVA=ON \
-              -D OPENCV_ENABLE_NONFREE=ON \
-              -D CMAKE_BUILD_TYPE=RELEASE \
-              -D BUILD_SHARED_LIBS=OFF ..
-            make -j8
-            find . -name libopencv_java*
+            cat /proc/cpuinfo
+
+  build_armv7: 
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: uraimo/run-on-arch-action@v2.0.9
+        with:
+          arch: armv7
+          distro: ubuntu18.04
+          run: |
+            cat /proc/cpuinfo
+            
+# apt-get update -q -y
+# apt-get install -q -y git wget cmake unzip build-essential openjdk-8-jdk
+# java -version
+# wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+# unzip ${{ env.OPENCV_VERSION }} > /dev/null
+# cd opencv-${{ env.OPENCV_VERSION }}
+# mkdir build
+# cd build
+# cmake \
+#   -D BUILD_TESTING=OFF \
+#   -D BUILD_TESTING_SHARED=OFF \
+#   -D BUILD_TESTING_STATIC=OFF \
+#   -D OPENCV_GENERATE_PKGCONFIG=ON \
+#   -D BUILD_EXAMPLES=OFF \
+#   -D BUILD_DOCS=OFF \
+#   -D BUILD_FAT_JAVA_LIB=ON \
+#   -D BUILD_JAVA=ON \
+#   -D OPENCV_ENABLE_NONFREE=ON \
+#   -D CMAKE_BUILD_TYPE=RELEASE \
+#   -D BUILD_SHARED_LIBS=OFF ..
+# make -j8
+# find . -name libopencv_java*
 
   # # Build native libraries for Linux and Mac. Uploads the libraries
   # # as artifacts which are used in subsequent jobs.
