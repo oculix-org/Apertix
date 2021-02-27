@@ -37,8 +37,8 @@ jobs:
           distro: ubuntu18.04
           run: |
             apt-get update -q -y
-            apt-get install -q -y openjdk-8-jdk
             apt-get install -q -y git wget cmake unzip build-essential openjdk-8-jdk
+            java --version
             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
             unzip ${{ env.OPENCV_VERSION }} > /dev/null
             cd opencv-${{ env.OPENCV_VERSION }}
@@ -57,6 +57,7 @@ jobs:
               -D CMAKE_BUILD_TYPE=RELEASE \
               -D BUILD_SHARED_LIBS=OFF ..
             make -j8
+            find . -name libopencv_java*
 
   # # Build native libraries for Linux and Mac. Uploads the libraries
   # # as artifacts which are used in subsequent jobs.
