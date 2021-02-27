@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Run on Arm64
-      - uses: uraimo/run-on-arch-action@v2.0.9
+        uses: uraimo/run-on-arch-action@v2.0.9
         with:
           arch: aarch64
           distro: ubuntu18.04
