@@ -38,7 +38,7 @@ jobs:
           run: |
             apt-get update -q -y
             apt-get install -q -y git wget cmake unzip build-essential openjdk-8-jdk
-            java --version
+            java -version
             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
             unzip ${{ env.OPENCV_VERSION }} > /dev/null
             cd opencv-${{ env.OPENCV_VERSION }}
