@@ -123,152 +123,154 @@ jobs:
             artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
             artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
 
-  # # Build native libraries for Linux and Mac. Uploads the libraries
-  # # as artifacts which are used in subsequent jobs.
-  # build_mac_linux_x64:
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-18.04, macos-10.15]
-  #       java: [8]
+  # Build native libraries for Linux and Mac. Uploads the libraries
+  # as artifacts which are used in subsequent jobs.
+  build_mac_linux_x64:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15]
+        java: [8]
 
-  #   steps:
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
 
-  #     - name: Setup JDK ${{ matrix.java }}
-  #       uses: actions/setup-java@v1
-  #       with:
-  #         java-version: ${{ matrix.java }}
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
 
-  #     - name: Build OpenCV
-  #       run: |
-  #         wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-  #         unzip ${{ env.OPENCV_VERSION }} > /dev/null
-  #         cd opencv-${{ env.OPENCV_VERSION }}
-  #         mkdir build
-  #         cd build
-  #         cmake \
-  #           -D BUILD_JAVA=ON \
-  #           -D BUILD_FAT_JAVA_LIB=ON \
-  #           -D OPENCV_ENABLE_NONFREE=ON \
-  #           -D BUILD_SHARED_LIBS=OFF \
-  #           -D BUILD_PERF_TESTS=OFF \
-  #           -D BUILD_TESTS=OFF \
-  #           -D BUILD_EXAMPLES=OFF \
-  #           -D BUILD_DOCS=OFF \
-  #           -D BUILD_PACKAGE=OFF \
-  #           -D BUILD_opencv_python2=OFF \
-  #           -D BUILD_opencv_python3=OFF \
-  #           -D BUILD_opencv_apps=OFF \
-  #           -D BUILD_opencv_gapi=OFF \
-  #           -D CMAKE_BUILD_TYPE=RELEASE \
-  #           ..
-  #         make -j8
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            ..
+          make -j8
 
-  #     - name: Copy Libraries
-  #       run: |
-  #         cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream || :
-  #         cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
-  #         cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
+      - name: Copy Libraries
+        run: |
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64 || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64 || :
 
-  #     - name: Build with Maven
-  #       run: mvn -B test
+      - name: Build with Maven
+        run: mvn -B test
 
-  #     - name: Upload Libraries
-  #       uses: actions/upload-artifact@v2
-  #       with: 
-  #         name: ${{ matrix.os }}
-  #         path: |
-  #           opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
-  #           opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
-  #           opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{ matrix.os }}
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
 
-  # # Downloads the Windows distribution from OpenCV, extracts it and uploads
-  # # the native libraries as artifacts for use by subsequent jobs. This is
-  # # in leiu of building the native libraries on Windows.
-  # build_windows:
-  #   runs-on: ubuntu-18.04
+  # Downloads the Windows distribution from OpenCV, extracts it and uploads
+  # the native libraries as artifacts for use by subsequent jobs. This is
+  # in leiu of building the native libraries on Windows.
+  build_windows:
+    runs-on: ubuntu-18.04
 
-  #   steps:
-  #     - name: Download Windows Distribution
-  #       run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
+    steps:
+      - name: Download Windows Distribution
+        run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
 
-  #     - name: Extract Windows Distribution
-  #       run: 7z x opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe
+      - name: Extract Windows Distribution
+        run: 7z x opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe
           
-  #     - name: Upload Libraries
-  #       uses: actions/upload-artifact@v2
-  #       with: 
-  #         name: windows-2016
-  #         path: opencv/build/java
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v2
+        with: 
+          name: windows-2016
+          path: opencv/build/java
 
-  # # Download and combine the artifacts from the above jobs and build the
-  # # distribution jar. Uploads it as an artifact for subsequent steps.
-  # build_dist:
-  #   needs: [build_linux_arm64, build_mac_linux_x64, build_windows]
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-18.04]
-  #       java: [8]
+  # Download and combine the artifacts from the above jobs and build the
+  # distribution jar. Uploads it as an artifact for subsequent steps.
+  build_dist:
+    needs: [build_linux_arm64, build_mac_linux_x64, build_windows]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        java: [8]
 
-  #   steps:
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
 
-  #     - name: Setup JDK ${{ matrix.java }}
-  #       uses: actions/setup-java@v1
-  #       with:
-  #         java-version: ${{ matrix.java }}
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
 
-  #     - name: Download Libraries
-  #       uses: actions/download-artifact@v2
+      - name: Download Libraries
+        uses: actions/download-artifact@v2
 
-  #     - name: Copy Binaries
-  #       run: |
-  #         cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
-  #         cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
-  #         cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
-  #         mkdir -p src/main/resources/nu/pattern/opencv/linux/ARMv8
-  #         cp ubuntu-18.04-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv8
-  #         cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
-  #         cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_64
+      - name: Copy Binaries
+        run: |
+          # Note, this mkdir can be removed once we've pushed at least one
+          # commit with the new binary.
+          mkdir -p src/main/resources/nu/pattern/opencv/linux/ARMv8
+          cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp ubuntu-18.04-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv8
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_64
 
-  #     - name: Build with Maven
-  #       run: mvn -B install
+      - name: Build with Maven
+        run: mvn -B install
 
-  #     - name: Upload Distribution
-  #       uses: actions/upload-artifact@v2
-  #       with: 
-  #         name: dist
-  #         path: target/opencv*
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v2
+        with: 
+          name: dist
+          path: target/opencv*
 
-  # # Downloads the distribution jar that was build above and runs
-  # # a short smoke test on it on many platforms and versions of
-  # # Java. This is intended to ensure that the built jar
-  # # runs on all of the supported targets.
-  # test:
-  #   needs: build_dist
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
-  #       java: [8, 9, 10, 11, 12, 13, 14, 15]
+  # Downloads the distribution jar that was build above and runs
+  # a short smoke test on it on many platforms and versions of
+  # Java. This is intended to ensure that the built jar
+  # runs on all of the supported targets.
+  test:
+    needs: build_dist
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
+        java: [8, 9, 10, 11, 12, 13, 14, 15]
 
-  #   steps:
-  #     - name: Setup JDK ${{ matrix.java }}
-  #       uses: actions/setup-java@v1
-  #       with:
-  #         java-version: ${{ matrix.java }}
+    steps:
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
 
-  #     - name: Download Distribution
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: dist
+      - name: Download Distribution
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
 
-  #     - name: Run Test
-  #       run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
+      - name: Run Test
+        run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
 
   # distribute:
   #   needs: test
