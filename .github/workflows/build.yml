@@ -58,43 +58,30 @@ jobs:
             # where it would be after starting a new shell.
             export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
 
-            # wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-            # unzip ${{ env.OPENCV_VERSION }} > /dev/null
+            wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+            unzip ${{ env.OPENCV_VERSION }} > /dev/null
 
-            # cd opencv-${{ env.OPENCV_VERSION }}
-            # mkdir build
-            # cd build
-            # cmake \
-            #   -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
-            #   -D BUILD_JAVA=ON \
-            #   -D BUILD_FAT_JAVA_LIB=ON \
-            #   -D OPENCV_ENABLE_NONFREE=ON \
-            #   -D BUILD_SHARED_LIBS=OFF \
-            #   -D BUILD_PERF_TESTS=OFF \
-            #   -D BUILD_TESTS=OFF \
-            #   -D BUILD_EXAMPLES=OFF \
-            #   -D BUILD_DOCS=OFF \
-            #   -D BUILD_PACKAGE=OFF \
-            #   -D BUILD_opencv_python2=OFF \
-            #   -D BUILD_opencv_python3=OFF \
-            #   -D BUILD_opencv_apps=OFF \
-            #   -D BUILD_opencv_gapi=OFF \
-            #   -D CMAKE_BUILD_TYPE=RELEASE \
-            #   ..
-            # make -j4
-
-            # Temporarily use pre-built binaries to test the rest of the workflow without
-            # waiting hours for the build.
-            mkdir opencv-${{ env.OPENCV_VERSION }}
             cd opencv-${{ env.OPENCV_VERSION }}
             mkdir build
             cd build
-            wget https://www.dropbox.com/s/2a2ghuqnku0jb5z/ubuntu-18.04-arm64.zip
-            unzip ubuntu-18.04-arm64.zip
-            mkdir bin
-            mkdir lib
-            mv opencv-${{ env.OPENCV_VERSION_SHORT }}.jar bin
-            mv libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so lib
+            cmake \
+              -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+              -D BUILD_JAVA=ON \
+              -D BUILD_FAT_JAVA_LIB=ON \
+              -D OPENCV_ENABLE_NONFREE=ON \
+              -D BUILD_SHARED_LIBS=OFF \
+              -D BUILD_PERF_TESTS=OFF \
+              -D BUILD_TESTS=OFF \
+              -D BUILD_EXAMPLES=OFF \
+              -D BUILD_DOCS=OFF \
+              -D BUILD_PACKAGE=OFF \
+              -D BUILD_opencv_python2=OFF \
+              -D BUILD_opencv_python3=OFF \
+              -D BUILD_opencv_apps=OFF \
+              -D BUILD_opencv_gapi=OFF \
+              -D CMAKE_BUILD_TYPE=RELEASE \
+              ..
+            make -j4
 
             # Copy the build artifacts to the /artifacts directory, which will be
             # used by the host to upload them.
