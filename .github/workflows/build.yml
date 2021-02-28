@@ -133,17 +133,21 @@ jobs:
           mkdir build
           cd build
           cmake \
-            -D BUILD_TESTING=OFF \
-            -D BUILD_TESTING_SHARED=OFF \
-            -D BUILD_TESTING_STATIC=OFF \
-            -D OPENCV_GENERATE_PKGCONFIG=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
             -D BUILD_EXAMPLES=OFF \
             -D BUILD_DOCS=OFF \
-            -D BUILD_FAT_JAVA_LIB=ON \
-            -D BUILD_JAVA=ON \
-            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
             -D CMAKE_BUILD_TYPE=RELEASE \
-            -D BUILD_SHARED_LIBS=OFF ..
+            ..
           make -j8
 
       - name: Copy Libraries
