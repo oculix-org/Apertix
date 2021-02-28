@@ -19,9 +19,9 @@ on:
   pull_request:
 
 env:
-  OPENCV_VERSION: 4.5.1
-  OPENCV_VERSION_SHORT: 451
-  POM_VERSION: 4.5.1-0
+  OPENCV_VERSION: 4.3.0
+  OPENCV_VERSION_SHORT: 430
+  POM_VERSION: 4.3.0-4
 
 jobs:
   build_linux_arm64: 
