@@ -65,6 +65,7 @@ jobs:
             # mkdir build
             # cd build
             # cmake \
+            #   -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
             #   -D BUILD_JAVA=ON \
             #   -D BUILD_FAT_JAVA_LIB=ON \
             #   -D OPENCV_ENABLE_NONFREE=ON \
@@ -149,6 +150,7 @@ jobs:
           mkdir build
           cd build
           cmake \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
             -D BUILD_JAVA=ON \
             -D BUILD_FAT_JAVA_LIB=ON \
             -D OPENCV_ENABLE_NONFREE=ON \
