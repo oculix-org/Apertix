@@ -18,17 +18,23 @@ on:
   push:
   pull_request:
 
-env:
-  OPENCV_VERSION: 4.3.0
-  OPENCV_VERSION_SHORT: 430
-  POM_VERSION: 4.3.0-4
-
 jobs:
   build_linux_arm64: 
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
+
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+
+      - name: Get Version Info
+        run: |
+          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
 
       - name: Build OpenCV on Arm64
         uses: uraimo/run-on-arch-action@v2.0.9
@@ -129,6 +135,12 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
+      - name: Get Version Info
+        run: |
+          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+
       - name: Build OpenCV
         run: |
           wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
@@ -180,6 +192,17 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+
+      - name: Get Version Info
+        run: |
+          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+
       - name: Download Windows Distribution
         run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
 
@@ -210,6 +233,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
+      - name: Get Version Info
+        run: |
+          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
 
       - name: Download Libraries
         uses: actions/download-artifact@v2
@@ -252,6 +281,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
+      - name: Get Version Info
+        run: |
+          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
+          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
 
       - name: Download Distribution
         uses: actions/download-artifact@v2

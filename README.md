@@ -1,4 +1,4 @@
-# OpenCV 4.3.0 (packaged by [OpenPnP](http://openpnp.org))
+# OpenCV (packaged by [OpenPnP](http://openpnp.org))
 
 [OpenCV](http://opencv.org) Java bindings packaged with native libraries, seamlessly delivered as a turn-key Maven dependency.
 
@@ -48,7 +48,7 @@ OpenPnP's OpenCV package is added to your project as any other dependency.
     <dependency>
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
-      <version>4.3.0-4</version>
+      <version>[4.3.0,)</version>
     </dependency>
     
     <!-- ... -->
@@ -59,6 +59,8 @@ OpenPnP's OpenCV package is added to your project as any other dependency.
   
 </project>
 ```
+
+A list of all published versions can be found at https://mvnrepository.com/artifact/org.openpnp/opencv.
 
 ### API
 
@@ -108,6 +110,7 @@ OS | Architecture
 OS X | x86_32
 OS X | x86_64
 Linux | x86_64
+Linux | ARMv8 (arm64 / aarch64)
 Windows | x86_32
 Windows | x86_64
 

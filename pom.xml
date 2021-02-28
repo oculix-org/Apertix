@@ -14,6 +14,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <opencv.version.long>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</opencv.version.long>
+    <opencv.version.short>${parsedVersion.majorVersion}${parsedVersion.minorVersion}${parsedVersion.incrementalVersion}</opencv.version.short>
   </properties>
 
   <profiles>
@@ -113,7 +115,20 @@
 
   <build>
     <plugins>
-    
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>    
+
 	    <plugin>
 	      <groupId>org.sonatype.plugins</groupId>
 	      <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -157,14 +172,14 @@
             <configuration>
               <tasks>
                 <echo>Extracting Java classes.</echo>
-                <unjar src="${project.basedir}/upstream/opencv-430.jar" dest="${project.build.directory}/classes">
+                <unjar src="${project.basedir}/upstream/opencv-${opencv.version.short}.jar" dest="${project.build.directory}/classes">
                   <patternset>
                     <include name="**/*.class"/>
                   </patternset>
                 </unjar>
 
                 <echo>Extracting Java sources.</echo>
-                <unjar src="${project.basedir}/upstream/opencv-430.jar" dest="${project.build.directory}/upstream-sources">
+                <unjar src="${project.basedir}/upstream/opencv-${opencv.version.short}.jar" dest="${project.build.directory}/upstream-sources">
                   <patternset>
                     <include name="**/*.java"/>
                   </patternset>

@@ -5,6 +5,11 @@
 This file is being updated with new instructions to support the new
 automated Github Actions builds.
 
+mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout
+
+1. Update the `<version>` in `pom.xml`.
+
+
 ## Finish
 
 1. Commit the updates to develop.
