@@ -7,7 +7,7 @@
   <packaging>bundle</packaging>
   <groupId>org.openpnp</groupId>
   <artifactId>opencv</artifactId>
-  <version>4.3.0-3</version>
+  <version>4.5.1-0</version>
   <name>OpenPnP OpenCV</name>
   <description>OpenCV packaged with native libraries and loader for multiple platforms.</description>
   <url>http://github.com/openpnp/opencv</url>
@@ -71,7 +71,6 @@
     <url>http://github.com/openpnp/opencv</url>
     <connection>scm:git:http://github.com/openpnp/opencv.git</connection>
     <developerConnection>scm:git:http://github.com/openpnp/opencv.git</developerConnection>
-    <tag>v3.2.0-1</tag>
   </scm>
 
   <issueManagement>
@@ -158,14 +157,14 @@
             <configuration>
               <tasks>
                 <echo>Extracting Java classes.</echo>
-                <unjar src="${project.basedir}/upstream/opencv-430.jar" dest="${project.build.directory}/classes">
+                <unjar src="${project.basedir}/upstream/opencv-451.jar" dest="${project.build.directory}/classes">
                   <patternset>
                     <include name="**/*.class"/>
                   </patternset>
                 </unjar>
 
                 <echo>Extracting Java sources.</echo>
-                <unjar src="${project.basedir}/upstream/opencv-430.jar" dest="${project.build.directory}/upstream-sources">
+                <unjar src="${project.basedir}/upstream/opencv-451.jar" dest="${project.build.directory}/upstream-sources">
                   <patternset>
                     <include name="**/*.java"/>
                   </patternset>
