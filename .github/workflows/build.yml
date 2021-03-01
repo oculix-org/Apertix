@@ -287,13 +287,11 @@ jobs:
   # Java. This is intended to ensure that the built jar
   # runs on all of the supported targets.
   test:
-    # needs: build_dist
+    needs: build_dist
     strategy:
       matrix:
-        # os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
-        # java: [8, 9, 10, 11, 12, 13, 14, 15]
-        os: [windows-2016]
-        java: [8]
+        os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
+        java: [8, 9, 10, 11, 12, 13, 14, 15]
 
     runs-on: ${{ matrix.os }}
 
