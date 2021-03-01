@@ -267,17 +267,19 @@ jobs:
           name: dist
           path: target/opencv*
 
-  # Downloads the distribution jar that was build above and runs
+  # Downloads the distribution jar that was built above and runs
   # a short smoke test on it on many platforms and versions of
   # Java. This is intended to ensure that the built jar
   # runs on all of the supported targets.
   test:
-    needs: build_dist
+    # needs: build_dist
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
-        java: [8, 9, 10, 11, 12, 13, 14, 15]
+        # os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
+        # java: [8, 9, 10, 11, 12, 13, 14, 15]
+        os: [windows-2016]
+        java: [8]
 
     steps:
       - name: Checkout Repo
