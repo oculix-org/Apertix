@@ -199,9 +199,9 @@ jobs:
 
       - name: Get Version Info
         run: |
-          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $env:GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $env:GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $env:GITHUB_ENV
 
       - name: Download Windows Distribution
         run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
