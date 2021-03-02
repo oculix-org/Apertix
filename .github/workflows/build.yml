@@ -11,6 +11,7 @@
 # - only run on tags
 # - extract opencv version from pom.xml for use in this action
 # - maybe consider doing an arm64 test with run on?
+# - see if I can remove more hardcoded paths and such using the matrix variables.
 
 name: Build OpenPnP OpenCV Distribution
 
@@ -20,21 +21,27 @@ on:
 
 jobs:
   build_linux_arm64: 
-    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        java: [15]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-      - name: Setup JDK
+      - name: Setup JDK ${{ matrix.java }}
         uses: actions/setup-java@v1
         with:
-          java-version: 15
+          java-version: ${{ matrix.java }}
 
       - name: Get Version Info
         run: |
-          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Build OpenCV on Arm64
         uses: uraimo/run-on-arch-action@v2.0.9
@@ -120,11 +127,12 @@ jobs:
   # Build native libraries for Linux and Mac. Uploads the libraries
   # as artifacts which are used in subsequent jobs.
   build_mac_linux_x64:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
         java: [8]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout Repo
@@ -137,9 +145,9 @@ jobs:
 
       - name: Get Version Info
         run: |
-          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Build OpenCV
         run: |
@@ -189,19 +197,27 @@ jobs:
   # the native libraries as artifacts for use by subsequent jobs. This is
   # in leiu of building the native libraries on Windows.
   build_windows:
-    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        java: [15]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Setup JDK
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup JDK ${{ matrix.java }}
         uses: actions/setup-java@v1
         with:
-          java-version: 15
+          java-version: ${{ matrix.java }}
 
       - name: Get Version Info
         run: |
-          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Download Windows Distribution
         run: wget -O opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe https://sourceforge.net/projects/opencvlibrary/files/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-vc14_vc15.exe/download
@@ -219,11 +235,13 @@ jobs:
   # distribution jar. Uploads it as an artifact for subsequent steps.
   build_dist:
     needs: [build_linux_arm64, build_mac_linux_x64, build_windows]
-    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
         os: [ubuntu-18.04]
         java: [8]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout Repo
@@ -236,9 +254,9 @@ jobs:
 
       - name: Get Version Info
         run: |
-          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Download Libraries
         uses: actions/download-artifact@v2
@@ -264,29 +282,34 @@ jobs:
           name: dist
           path: target/opencv*
 
-  # Downloads the distribution jar that was build above and runs
+  # Downloads the distribution jar that was built above and runs
   # a short smoke test on it on many platforms and versions of
   # Java. This is intended to ensure that the built jar
   # runs on all of the supported targets.
   test:
     needs: build_dist
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-10.15, windows-2016, windows-2019, ubuntu-20.04, ubuntu-18.04]
         java: [8, 9, 10, 11, 12, 13, 14, 15]
 
+    runs-on: ${{ matrix.os }}
+
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
       - name: Setup JDK ${{ matrix.java }}
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
 
       - name: Get Version Info
+        shell: bash
         run: |
-          echo export POM_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout` >> $GITHUB_ENV
-          echo export OPENCV_VERSION_SHORT=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout` >> $GITHUB_ENV
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Download Distribution
         uses: actions/download-artifact@v2
@@ -294,8 +317,5 @@ jobs:
           name: dist
 
       - name: Run Test
+        shell: bash
         run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
-
-  # distribute:
-  #   needs: test
-  #   runs-on: ubuntu-18.04
