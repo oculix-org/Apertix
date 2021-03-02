@@ -52,7 +52,6 @@
                   <goal>sign</goal>
                 </goals>
                 <configuration>
-                  <useAgent>false</useAgent>
                   <!-- Prevent gpg from using pinentry programs -->
                   <gpgArguments>
                     <arg>--pinentry-mode</arg>
