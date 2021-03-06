@@ -106,7 +106,6 @@ jobs:
             # actions/checkout for the Git stuff, rather than having to mess with
             # the authentication in this container.
             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
-            mkdir -p /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv8
             cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv8
 
             # Peform a test build in the host repo, which now contains all of the
@@ -261,9 +260,6 @@ jobs:
 
       - name: Copy Binaries
         run: |
-          # Note, this mkdir can be removed once we've pushed at least one
-          # commit with the new binary.
-          mkdir -p src/main/resources/nu/pattern/opencv/linux/ARMv8
           cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
           cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
           cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
@@ -355,9 +351,6 @@ jobs:
 
       - name: Copy Binaries
         run: |
-          # Note, this mkdir can be removed once we've pushed at least one
-          # commit with the new binary.
-          mkdir -p src/main/resources/nu/pattern/opencv/linux/ARMv8
           cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
           cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
           cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
