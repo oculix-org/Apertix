@@ -8,8 +8,6 @@
 # https://github.com/actions/download-artifact
 
 # TODO
-# - only run on tags
-# - extract opencv version from pom.xml for use in this action
 # - maybe consider doing an arm64 test with run on?
 # - see if I can remove more hardcoded paths and such using the matrix variables.
 
@@ -319,3 +317,61 @@ jobs:
       - name: Run Test
         shell: bash
         run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
+
+  publish:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    
+    needs: test
+
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        java: [8]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Download Libraries
+        uses: actions/download-artifact@v2
+
+      - name: Copy Binaries
+        run: |
+          # Note, this mkdir can be removed once we've pushed at least one
+          # commit with the new binary.
+          mkdir -p src/main/resources/nu/pattern/opencv/linux/ARMv8
+          cp macos-10.15/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-10.15/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp ubuntu-18.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp ubuntu-18.04-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv8
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_64
+
+      - name: Publish to Apache Maven Central
+        run: mvn -B -e clean deploy -P release-sign-artifacts
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+
+
+

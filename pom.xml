@@ -7,7 +7,7 @@
   <packaging>bundle</packaging>
   <groupId>org.openpnp</groupId>
   <artifactId>opencv</artifactId>
-  <version>4.3.0-4</version>
+  <version>4.5.1-0</version>
   <name>OpenPnP OpenCV</name>
   <description>OpenCV packaged with native libraries and loader for multiple platforms.</description>
   <url>http://github.com/openpnp/opencv</url>
@@ -43,7 +43,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.4</version>
+            <version>1.6</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -52,7 +52,11 @@
                   <goal>sign</goal>
                 </goals>
                 <configuration>
-                  <useAgent>false</useAgent>
+                  <!-- Prevent gpg from using pinentry programs -->
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
                 </configuration>
               </execution>
             </executions>
@@ -132,12 +136,12 @@
 	    <plugin>
 	      <groupId>org.sonatype.plugins</groupId>
 	      <artifactId>nexus-staging-maven-plugin</artifactId>
-	      <version>1.6.3</version>
+	      <version>1.6.7</version>
 	      <extensions>true</extensions>
 	      <configuration>
 	        <serverId>ossrh</serverId>
 	        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-	        <autoReleaseAfterClose>false</autoReleaseAfterClose>
+	        <autoReleaseAfterClose>true</autoReleaseAfterClose>
 	      </configuration>
 	    </plugin>
 
