@@ -125,3 +125,7 @@ This package is maintained by [Jason von Nieda](http://github.com/vonnieda).
 - [Michael Ahlers](http://github.com/michaelahlers), for originally creating and maintaining this project.
 - [Greg Borenstein](https://github.com/atduskgreg), whose advice and [OpenCV for Processing](https://github.com/atduskgreg/opencv-processing) project informed this package's development. 
 - [Alex Osborne](https://github.com/ato), for helpful [utility class producing temporary directories with Java NIO that are properly garbage-collected on shutdown](https://gist.github.com/ato/6774390).
+
+## Builds
+
+Builds are automatically created and published to Maven Central by Github Actions triggered by new tags. Builds are also created for branches and pull requests, and the artifacts can be downloaded from the Actions tab. These are not automatically released to Maven Central.
