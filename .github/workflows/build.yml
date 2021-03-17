@@ -111,7 +111,7 @@ jobs:
             # Peform a test build in the host repo, which now contains all of the
             # build artifacts.
             cd /host_repo
-            mvn -e -B test
+            mvn -B test
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
