@@ -110,6 +110,7 @@ OS | Architecture
 OS X | x86_32
 OS X | x86_64
 Linux | x86_64
+Linux | ARMv7 (arm)
 Linux | ARMv8 (arm64 / aarch64)
 Windows | x86_32
 Windows | x86_64

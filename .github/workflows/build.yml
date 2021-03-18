@@ -92,7 +92,7 @@ jobs:
               -D BUILD_opencv_gapi=OFF \
               -D CMAKE_BUILD_TYPE=RELEASE \
               ..
-            make -j8
+            make -j4
 
             # Copy the build artifacts to the /artifacts directory, which will be
             # used by the host to upload them.
