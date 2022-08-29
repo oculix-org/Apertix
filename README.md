@@ -119,7 +119,8 @@ If you can help create binaries for additional platforms, please see notes under
 
 ## Credits
 
-This package is maintained by [Jason von Nieda](http://github.com/vonnieda).
+This package is maintained by [Jason von Nieda](http://github.com/vonnieda). If you find it useful, please
+consider [sponsoring me](https://github.com/sponsors/vonnieda).
   
 ## Acknowledgements
 
