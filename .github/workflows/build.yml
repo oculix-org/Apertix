@@ -18,211 +18,211 @@ on:
   pull_request:
 
 jobs:
-  build_linux_arm: 
-    strategy:
-      matrix:
-        os: [ubuntu-18.04]
-        java: [8]
+#   build_linux_arm: 
+#     strategy:
+#       matrix:
+#         os: [ubuntu-18.04]
+#         java: [8]
 
-    runs-on: ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
 
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
+#     steps:
+#       - name: Checkout Repo
+#         uses: actions/checkout@v2
 
-      - name: Setup JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
+#       - name: Setup JDK ${{ matrix.java }}
+#         uses: actions/setup-java@v1
+#         with:
+#           java-version: ${{ matrix.java }}
 
-      - name: Get Version Info
-        run: |
-          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+#       - name: Get Version Info
+#         run: |
+#           echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+#           echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+#           echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Build OpenCV on Arm
-        uses: uraimo/run-on-arch-action@v2.0.9
-        with:
-          arch: armv7
-          distro: ubuntu18.04
+#       - name: Build OpenCV on Arm
+#         uses: uraimo/run-on-arch-action@v2.0.9
+#         with:
+#           arch: armv7
+#           distro: ubuntu18.04
           
-           # Not required, but speeds up builds
-          githubToken: ${{ github.token }}
+#            # Not required, but speeds up builds
+#           githubToken: ${{ github.token }}
 
-          # Create an artifacts directory
-          setup: |
-            mkdir -p "${PWD}/artifacts"
+#           # Create an artifacts directory
+#           setup: |
+#             mkdir -p "${PWD}/artifacts"
 
-          # Mount the artifacts directory as /artifacts in the container
-          # Also mount the checked out repo as /host_repo so we can do a test build.
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-            --volume "${PWD}:/host_repo"
+#           # Mount the artifacts directory as /artifacts in the container
+#           # Also mount the checked out repo as /host_repo so we can do a test build.
+#           dockerRunArgs: |
+#             --volume "${PWD}/artifacts:/artifacts"
+#             --volume "${PWD}:/host_repo"
 
-          run: |
-            apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
+#           run: |
+#             apt-get update -q -y
+#             apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
 
-            # TODO: I'd like to get this path automatically somehow. I think it might be
-            # in /etc/environment but sourcing it didn't seem to work. Need to figure out
-            # where it would be after starting a new shell.
-            export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
+#             # TODO: I'd like to get this path automatically somehow. I think it might be
+#             # in /etc/environment but sourcing it didn't seem to work. Need to figure out
+#             # where it would be after starting a new shell.
+#             export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
 
-            wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-            unzip ${{ env.OPENCV_VERSION }} > /dev/null
+#             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+#             unzip ${{ env.OPENCV_VERSION }} > /dev/null
 
-            cd opencv-${{ env.OPENCV_VERSION }}
-            mkdir build
-            cd build
-            cmake \
-              -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
-              -D BUILD_JAVA=ON \
-              -D BUILD_FAT_JAVA_LIB=ON \
-              -D OPENCV_ENABLE_NONFREE=ON \
-              -D BUILD_SHARED_LIBS=OFF \
-              -D BUILD_PERF_TESTS=OFF \
-              -D BUILD_TESTS=OFF \
-              -D BUILD_EXAMPLES=OFF \
-              -D BUILD_DOCS=OFF \
-              -D BUILD_PACKAGE=OFF \
-              -D BUILD_opencv_python2=OFF \
-              -D BUILD_opencv_python3=OFF \
-              -D BUILD_opencv_apps=OFF \
-              -D BUILD_opencv_gapi=OFF \
-              -D CMAKE_BUILD_TYPE=RELEASE \
-              ..
-            make -j4
+#             cd opencv-${{ env.OPENCV_VERSION }}
+#             mkdir build
+#             cd build
+#             cmake \
+#               -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+#               -D BUILD_JAVA=ON \
+#               -D BUILD_FAT_JAVA_LIB=ON \
+#               -D OPENCV_ENABLE_NONFREE=ON \
+#               -D BUILD_SHARED_LIBS=OFF \
+#               -D BUILD_PERF_TESTS=OFF \
+#               -D BUILD_TESTS=OFF \
+#               -D BUILD_EXAMPLES=OFF \
+#               -D BUILD_DOCS=OFF \
+#               -D BUILD_PACKAGE=OFF \
+#               -D BUILD_opencv_python2=OFF \
+#               -D BUILD_opencv_python3=OFF \
+#               -D BUILD_opencv_apps=OFF \
+#               -D BUILD_opencv_gapi=OFF \
+#               -D CMAKE_BUILD_TYPE=RELEASE \
+#               ..
+#             make -j4
 
-            # Copy the build artifacts to the /artifacts directory, which will be
-            # used by the host to upload them.
-            mkdir -p /artifacts/bin
-            mkdir -p /artifacts/lib
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /artifacts/lib
+#             # Copy the build artifacts to the /artifacts directory, which will be
+#             # used by the host to upload them.
+#             mkdir -p /artifacts/bin
+#             mkdir -p /artifacts/lib
+#             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
+#             cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /artifacts/lib
 
-            # And also copy the build artifacts to the repo, so we can do a test build.
-            # Note that we use the repo checked out on the host so that we can use
-            # actions/checkout for the Git stuff, rather than having to mess with
-            # the authentication in this container.
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv7
+#             # And also copy the build artifacts to the repo, so we can do a test build.
+#             # Note that we use the repo checked out on the host so that we can use
+#             # actions/checkout for the Git stuff, rather than having to mess with
+#             # the authentication in this container.
+#             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
+#             cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv7
 
-            # Peform a test build in the host repo, which now contains all of the
-            # build artifacts.
-            cd /host_repo
-            mvn -B test
+#             # Peform a test build in the host repo, which now contains all of the
+#             # build artifacts.
+#             cd /host_repo
+#             mvn -B test
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with: 
-          name: ubuntu-18.04-arm
-          path: |
-            artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
-            artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+#       - name: Upload Artifacts
+#         uses: actions/upload-artifact@v2
+#         with: 
+#           name: ubuntu-18.04-arm
+#           path: |
+#             artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+#             artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
 
-  build_linux_arm64: 
-    strategy:
-      matrix:
-        os: [ubuntu-18.04]
-        java: [15]
+#   build_linux_arm64: 
+#     strategy:
+#       matrix:
+#         os: [ubuntu-18.04]
+#         java: [15]
 
-    runs-on: ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
 
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
+#     steps:
+#       - name: Checkout Repo
+#         uses: actions/checkout@v2
 
-      - name: Setup JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
+#       - name: Setup JDK ${{ matrix.java }}
+#         uses: actions/setup-java@v1
+#         with:
+#           java-version: ${{ matrix.java }}
 
-      - name: Get Version Info
-        run: |
-          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+#       - name: Get Version Info
+#         run: |
+#           echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+#           echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+#           echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Build OpenCV on Arm64
-        uses: uraimo/run-on-arch-action@v2.0.9
-        with:
-          arch: aarch64
-          distro: ubuntu18.04
+#       - name: Build OpenCV on Arm64
+#         uses: uraimo/run-on-arch-action@v2.0.9
+#         with:
+#           arch: aarch64
+#           distro: ubuntu18.04
           
-           # Not required, but speeds up builds
-          githubToken: ${{ github.token }}
+#            # Not required, but speeds up builds
+#           githubToken: ${{ github.token }}
 
-          # Create an artifacts directory
-          setup: |
-            mkdir -p "${PWD}/artifacts"
+#           # Create an artifacts directory
+#           setup: |
+#             mkdir -p "${PWD}/artifacts"
 
-          # Mount the artifacts directory as /artifacts in the container
-          # Also mount the checked out repo as /host_repo so we can do a test build.
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-            --volume "${PWD}:/host_repo"
+#           # Mount the artifacts directory as /artifacts in the container
+#           # Also mount the checked out repo as /host_repo so we can do a test build.
+#           dockerRunArgs: |
+#             --volume "${PWD}/artifacts:/artifacts"
+#             --volume "${PWD}:/host_repo"
 
-          run: |
-            apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
+#           run: |
+#             apt-get update -q -y
+#             apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
 
-            # TODO: I'd like to get this path automatically somehow. I think it might be
-            # in /etc/environment but sourcing it didn't seem to work. Need to figure out
-            # where it would be after starting a new shell.
-            export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+#             # TODO: I'd like to get this path automatically somehow. I think it might be
+#             # in /etc/environment but sourcing it didn't seem to work. Need to figure out
+#             # where it would be after starting a new shell.
+#             export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
 
-            wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-            unzip ${{ env.OPENCV_VERSION }} > /dev/null
+#             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+#             unzip ${{ env.OPENCV_VERSION }} > /dev/null
 
-            cd opencv-${{ env.OPENCV_VERSION }}
-            mkdir build
-            cd build
-            cmake \
-              -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
-              -D BUILD_JAVA=ON \
-              -D BUILD_FAT_JAVA_LIB=ON \
-              -D OPENCV_ENABLE_NONFREE=ON \
-              -D BUILD_SHARED_LIBS=OFF \
-              -D BUILD_PERF_TESTS=OFF \
-              -D BUILD_TESTS=OFF \
-              -D BUILD_EXAMPLES=OFF \
-              -D BUILD_DOCS=OFF \
-              -D BUILD_PACKAGE=OFF \
-              -D BUILD_opencv_python2=OFF \
-              -D BUILD_opencv_python3=OFF \
-              -D BUILD_opencv_apps=OFF \
-              -D BUILD_opencv_gapi=OFF \
-              -D CMAKE_BUILD_TYPE=RELEASE \
-              ..
-            make -j4
+#             cd opencv-${{ env.OPENCV_VERSION }}
+#             mkdir build
+#             cd build
+#             cmake \
+#               -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+#               -D BUILD_JAVA=ON \
+#               -D BUILD_FAT_JAVA_LIB=ON \
+#               -D OPENCV_ENABLE_NONFREE=ON \
+#               -D BUILD_SHARED_LIBS=OFF \
+#               -D BUILD_PERF_TESTS=OFF \
+#               -D BUILD_TESTS=OFF \
+#               -D BUILD_EXAMPLES=OFF \
+#               -D BUILD_DOCS=OFF \
+#               -D BUILD_PACKAGE=OFF \
+#               -D BUILD_opencv_python2=OFF \
+#               -D BUILD_opencv_python3=OFF \
+#               -D BUILD_opencv_apps=OFF \
+#               -D BUILD_opencv_gapi=OFF \
+#               -D CMAKE_BUILD_TYPE=RELEASE \
+#               ..
+#             make -j4
 
-            # Copy the build artifacts to the /artifacts directory, which will be
-            # used by the host to upload them.
-            mkdir -p /artifacts/bin
-            mkdir -p /artifacts/lib
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /artifacts/lib
+#             # Copy the build artifacts to the /artifacts directory, which will be
+#             # used by the host to upload them.
+#             mkdir -p /artifacts/bin
+#             mkdir -p /artifacts/lib
+#             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
+#             cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /artifacts/lib
 
-            # And also copy the build artifacts to the repo, so we can do a test build.
-            # Note that we use the repo checked out on the host so that we can use
-            # actions/checkout for the Git stuff, rather than having to mess with
-            # the authentication in this container.
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv8
+#             # And also copy the build artifacts to the repo, so we can do a test build.
+#             # Note that we use the repo checked out on the host so that we can use
+#             # actions/checkout for the Git stuff, rather than having to mess with
+#             # the authentication in this container.
+#             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
+#             cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/nu/pattern/opencv/linux/ARMv8
 
-            # Peform a test build in the host repo, which now contains all of the
-            # build artifacts.
-            cd /host_repo
-            mvn -B test
+#             # Peform a test build in the host repo, which now contains all of the
+#             # build artifacts.
+#             cd /host_repo
+#             mvn -B test
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with: 
-          name: ubuntu-18.04-arm64
-          path: |
-            artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
-            artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+#       - name: Upload Artifacts
+#         uses: actions/upload-artifact@v2
+#         with: 
+#           name: ubuntu-18.04-arm64
+#           path: |
+#             artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+#             artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
 
   # Build native libraries for Linux and Mac. Uploads the libraries
   # as artifacts which are used in subsequent jobs.
