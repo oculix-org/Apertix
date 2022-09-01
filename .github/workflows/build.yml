@@ -307,7 +307,7 @@ jobs:
   build_mac_aarch64:
     strategy:
       matrix:
-        java: [17]
+        java: [18]
     runs-on: [self-hosted, macOS, ARM64]
 
     steps:
@@ -318,7 +318,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          architecture: arm64
+          architecture: aarch64
           java-version: ${{ matrix.java }}
 
       - name: Get Version Info
