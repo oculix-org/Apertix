@@ -236,7 +236,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
-        java: [18]
+        java: [8]
 
     runs-on: ${{ matrix.os }}
 
@@ -307,7 +307,7 @@ jobs:
   build_mac_aarch64:
     strategy:
       matrix:
-        java: [8]
+        java: [18]
     runs-on: [self-hosted, macOS, ARM64]
 
     steps:
