@@ -318,6 +318,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
+          architecture: arm64
           java-version: ${{ matrix.java }}
 
       - name: Get Version Info
