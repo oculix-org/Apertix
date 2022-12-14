@@ -304,6 +304,9 @@ jobs:
 
   # Build Apple Silicon Mac native binary.
   # See https://cmake.org/cmake/help/v3.23/variable/CMAKE_APPLE_SILICON_PROCESSOR.html
+  # Currently runs on Jason's Mac using a Github self hosted runner because Github doesn't
+  # yet support runners for Apple Silicon on macOS. 
+  # Requires that the runner machine have, at least, maven and ant installed.
   build_mac_aarch64:
     strategy:
       matrix:
