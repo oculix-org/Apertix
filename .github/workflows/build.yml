@@ -351,7 +351,7 @@ jobs:
             -D BUILD_opencv_gapi=OFF \
             -D CMAKE_BUILD_TYPE=RELEASE \
             -D CMAKE_APPLE_SILICON_PROCESSOR=arm64 \
-            -D CMAKE_CXX_STANDARD=17
+            -D CMAKE_CXX_STANDARD=17 \
             ..
           make -j8
 
