@@ -228,8 +228,15 @@
 							<value>${project.build.directory}/test-classes/logging.properties</value>
 						</property>
 					</systemProperties>
-					<!-- It's preferred to keep all upstream resources contained in a single 
-						location. Since the test classes use the working directory to find their 
+					<properties>
+						<!-- Bootstrap tests with the native library via JNA loader. -->
+						<property>
+							<name>listener</name>
+							<value>nu.pattern.LoadLibraryRunListener</value>
+						</property>
+					</properties>
+					<!-- It's preferred to keep all upstream resources contained in a single
+						location. Since the test classes use the working directory to find their
 						fixtures, it's necessary to specify this location at test time. -->
 					<workingDirectory>${project.basedir}/upstream</workingDirectory>
 					<excludes>
