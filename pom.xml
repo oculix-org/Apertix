@@ -5,9 +5,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<packaging>bundle</packaging>
-	<groupId>org.openpnp</groupId>
+	<groupId>io.github.julienmerconsulting.apertix</groupId>
 	<artifactId>opencv</artifactId>
-	<version>4.9.0-0</version>
+	<version>4.10.0-0</version>
 	<name>OpenPnP OpenCV</name>
 	<description>OpenCV packaged with native libraries and loader for multiple platforms.</description>
 	<url>http://github.com/openpnp/opencv</url>
@@ -159,7 +159,7 @@
 						<configuration>
 							<tasks>
 								<echo>Extracting Java classes.</echo>
-								<unjar src="${project.basedir}/upstream/opencv-490.jar"
+								<unjar src="${project.basedir}/upstream/opencv-4100.jar"
 									dest="${project.build.directory}/classes">
 									<patternset>
 										<include name="**/*.class" />
@@ -167,7 +167,7 @@
 								</unjar>
 
 								<echo>Extracting Java sources.</echo>
-								<unjar src="${project.basedir}/upstream/opencv-490.jar"
+								<unjar src="${project.basedir}/upstream/opencv-4100.jar"
 									dest="${project.build.directory}/upstream-sources">
 									<patternset>
 										<include name="**/*.java" />
