@@ -21,7 +21,7 @@ public class MserTest {
     static {
         OpenCV.loadLocally();
     }
-    
+
     /**
      * Draws a filled circle in an image and then uses MSER to attempt to
      * find it. Expects to find one result.
@@ -31,10 +31,10 @@ public class MserTest {
         Mat mat = new Mat(400, 400, CvType.CV_8U);
         mat.setTo(new Scalar(0));
         Imgproc.circle(
-                mat, 
-                new Point(200, 200), 
-                20, 
-                new Scalar(100), 
+                mat,
+                new Point(200, 200),
+                20,
+                new Scalar(100),
                 -1);
         MSER mser = MSER.create();
         List<MatOfPoint> msers = new ArrayList<>();
@@ -43,5 +43,3 @@ public class MserTest {
         Assert.assertEquals(1, msers.size());
     }
 }
-
-
