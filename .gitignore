@@ -11,3 +11,6 @@ target
 .settings/org.eclipse.m2e.core.prefs
 opencv/**
 .metadata/
+"src/main/resources/*.dll" 
+"src/main/resources/*.so" 
+"src/main/resources/*.dylib" 
