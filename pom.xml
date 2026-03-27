@@ -171,23 +171,22 @@
 					<execution>
 						<phase>generate-sources</phase>
 						<configuration>
-							<tasks>
-								<echo>Extracting Java classes.</echo>
-								<unjar src="${project.basedir}/upstream/opencv-4100.jar"
-									dest="${project.build.directory}/classes">
-									<patternset>
-										<include name="**/*.class" />
-									</patternset>
-								</unjar>
-
-								<echo>Extracting Java sources.</echo>
-								<unjar src="${project.basedir}/upstream/opencv-4100.jar"
-									dest="${project.build.directory}/upstream-sources">
-									<patternset>
-										<include name="**/*.java" />
-									</patternset>
-								</unjar>
-							</tasks>
+						    <tasks>
+						        <echo>Extracting Java classes.</echo>
+						        <unjar src="${project.basedir}/upstream/opencv-${opencv.version.short}.jar"
+						            dest="${project.build.directory}/classes">
+						            <patternset>
+						                <include name="**/*.class" />
+						            </patternset>
+						        </unjar>
+						        <echo>Extracting Java sources.</echo>
+						        <unjar src="${project.basedir}/upstream/opencv-${opencv.version.short}.jar"
+						            dest="${project.build.directory}/upstream-sources">
+						            <patternset>
+						                <include name="**/*.java" />
+						            </patternset>
+						        </unjar>
+						    </tasks>
 						</configuration>
 						<goals>
 							<goal>run</goal>
