@@ -168,7 +168,7 @@ jobs:
   build_mac_linux_x64:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-13]
+        os: [ubuntu-20.04, macos-latest]
         java: [17]
 
     runs-on: ${{ matrix.os }}
@@ -227,7 +227,7 @@ jobs:
       - name: Upload Libraries
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}
+          name: ${{ matrix.os == 'ubuntu-20.04' && 'linux-x64' || 'macos-x64' }}
           path: |
             opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
             opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
@@ -373,10 +373,10 @@ jobs:
 
       - name: Copy Binaries
         run: |
-          cp macos-13/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
-          cp macos-13/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp macos-x64/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
           cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/ARMv8
-          cp ubuntu-20.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
           cp ubuntu-18.04-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv7
           cp ubuntu-18.04-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv8
           cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
@@ -397,7 +397,7 @@ jobs:
     needs: build_dist
     strategy:
       matrix:
-        os: [macos-13, windows-2019, ubuntu-20.04, ubuntu-22.04]
+        os: [macos-latest, windows-2019, ubuntu-20.04, ubuntu-22.04]
         java: [11, 17]
 
     runs-on: ${{ matrix.os }}
@@ -468,10 +468,10 @@ jobs:
 
       - name: Copy Binaries
         run: |
-          cp macos-13/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
-          cp macos-13/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
+          cp macos-x64/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/x86_64
           cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/nu/pattern/opencv/osx/ARMv8
-          cp ubuntu-20.04/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
+          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/x86_64
           cp ubuntu-18.04-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv7
           cp ubuntu-18.04-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/nu/pattern/opencv/linux/ARMv8
           cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/nu/pattern/opencv/windows/x86_32
