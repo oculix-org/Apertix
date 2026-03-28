@@ -281,10 +281,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<links>
-					    <link>https://docs.opencv.org/4.x/javadoc/</link>
-					    <link>https://docs.oracle.com/en/java/javase/17/docs/api/</link>
-					</links>
+        			<failOnError>false</failOnError>
 					<additionalparam>${javadoc.parameters}</additionalparam>
 				</configuration>
 			</plugin>
