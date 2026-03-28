@@ -65,6 +65,7 @@ jobs:
 
       - name: Copy Libraries
         run: |
+          mkdir -p src/main/resources/linux-arm
           cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
           cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-arm/
 
