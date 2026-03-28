@@ -6,7 +6,7 @@ public class PrintVersion {
     static {
         OpenCV.loadLocally();
     }
-
+    
     public static void main(String[] args) {
         System.out.println(Core.getVersionString());
     }
