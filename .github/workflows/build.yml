@@ -63,9 +63,15 @@ jobs:
               -D BUILD_opencv_python3=OFF \
               -D BUILD_opencv_apps=OFF \
               -D BUILD_opencv_gapi=OFF \
+              -D ENABLE_NEON=OFF \
+              -D WITH_OPENCL=OFF \
+              -D WITH_IPP=OFF \
+              -D BUILD_opencv_highgui=OFF \
+              -D BUILD_opencv_dnn=OFF \
+              -D BUILD_opencv_ml=OFF \
               -D CMAKE_BUILD_TYPE=RELEASE \
               ..
-            make -j4
+            make -j1
             mkdir -p /artifacts/bin
             mkdir -p /artifacts/lib
             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
@@ -143,9 +149,15 @@ jobs:
               -D BUILD_opencv_python3=OFF \
               -D BUILD_opencv_apps=OFF \
               -D BUILD_opencv_gapi=OFF \
+              -D ENABLE_NEON=OFF \
+              -D WITH_OPENCL=OFF \
+              -D WITH_IPP=OFF \
+              -D BUILD_opencv_highgui=OFF \
+              -D BUILD_opencv_dnn=OFF \
+              -D BUILD_opencv_ml=OFF \
               -D CMAKE_BUILD_TYPE=RELEASE \
               ..
-            make -j4
+            make -j1
             mkdir -p /artifacts/bin
             mkdir -p /artifacts/lib
             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
