@@ -156,7 +156,8 @@
 				<configuration>
 					<instructions>
 						<Export-Package>nu.pattern.*, org.opencv.*</Export-Package>
-						<Import-Package>!sun.reflect.*</Import-Package>
+						<Import-Package>!sun.reflect.*, !com.sun.jna.*</Import-Package>
+						<Embed-Dependency>jna;inline=true</Embed-Dependency>
 					</instructions>
 				</configuration>
 			</plugin>
