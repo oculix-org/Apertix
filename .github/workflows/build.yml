@@ -32,7 +32,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: armv7
-          distro: ubuntu_latest
+          distro: ubuntu22.04
           githubToken: ${{ github.token }}
           setup: |
             mkdir -p "${PWD}/artifacts"
@@ -41,8 +41,10 @@ jobs:
             --volume "${PWD}:/host_repo"
           run: |
             apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
+            apt-get install -q -y git wget cmake unzip build-essential gcc-11 g++-11 default-jre default-jdk ant maven python3
             export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-armhf
+            export CC=gcc-11
+            export CXX=g++-11
             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
             unzip ${{ env.OPENCV_VERSION }} > /dev/null
             cd opencv-${{ env.OPENCV_VERSION }}
@@ -118,7 +120,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: aarch64
-          distro: ubuntu_latest
+          distro: ubuntu22.04
           githubToken: ${{ github.token }}
           setup: |
             mkdir -p "${PWD}/artifacts"
@@ -127,8 +129,10 @@ jobs:
             --volume "${PWD}:/host_repo"
           run: |
             apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential default-jre default-jdk ant maven python3
+            apt-get install -q -y git wget cmake unzip build-essential gcc-11 g++-11 default-jre default-jdk ant maven python3
             export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-aarch64
+            export CC=gcc-11
+            export CXX=g++-11
             wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
             unzip ${{ env.OPENCV_VERSION }} > /dev/null
             cd opencv-${{ env.OPENCV_VERSION }}
