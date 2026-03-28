@@ -65,15 +65,9 @@ jobs:
               -D BUILD_opencv_python3=OFF \
               -D BUILD_opencv_apps=OFF \
               -D BUILD_opencv_gapi=OFF \
-              -D ENABLE_NEON=OFF \
-              -D WITH_OPENCL=OFF \
-              -D WITH_IPP=OFF \
-              -D BUILD_opencv_highgui=OFF \
-              -D BUILD_opencv_dnn=OFF \
-              -D BUILD_opencv_ml=OFF \
               -D CMAKE_BUILD_TYPE=RELEASE \
               ..
-            make -j1
+            make -j4
             mkdir -p /artifacts/bin
             mkdir -p /artifacts/lib
             cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
@@ -95,10 +89,9 @@ jobs:
   build_linux_arm64:
     strategy:
       matrix:
-        os: [ubuntu-22.04]
         java: [17]
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04-arm
 
     steps:
       - name: Checkout Repo
@@ -116,68 +109,47 @@ jobs:
           echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
           echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Build OpenCV on Arm64
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: aarch64
-          distro: ubuntu22.04
-          githubToken: ${{ github.token }}
-          setup: |
-            mkdir -p "${PWD}/artifacts"
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-            --volume "${PWD}:/host_repo"
-          run: |
-            apt-get update -q -y
-            apt-get install -q -y git wget cmake unzip build-essential gcc-11 g++-11 default-jre default-jdk ant maven python3
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-aarch64
-            export CC=gcc-11
-            export CXX=g++-11
-            wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
-            unzip ${{ env.OPENCV_VERSION }} > /dev/null
-            cd opencv-${{ env.OPENCV_VERSION }}
-            mkdir build
-            cd build
-            cmake \
-              -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
-              -D BUILD_JAVA=ON \
-              -D BUILD_FAT_JAVA_LIB=ON \
-              -D OPENCV_ENABLE_NONFREE=ON \
-              -D BUILD_SHARED_LIBS=OFF \
-              -D BUILD_PERF_TESTS=OFF \
-              -D BUILD_TESTS=OFF \
-              -D BUILD_EXAMPLES=OFF \
-              -D BUILD_DOCS=OFF \
-              -D BUILD_PACKAGE=OFF \
-              -D BUILD_opencv_python2=OFF \
-              -D BUILD_opencv_python3=OFF \
-              -D BUILD_opencv_apps=OFF \
-              -D BUILD_opencv_gapi=OFF \
-              -D ENABLE_NEON=OFF \
-              -D WITH_OPENCL=OFF \
-              -D WITH_IPP=OFF \
-              -D BUILD_opencv_highgui=OFF \
-              -D BUILD_opencv_dnn=OFF \
-              -D BUILD_opencv_ml=OFF \
-              -D CMAKE_BUILD_TYPE=RELEASE \
-              ..
-            make -j1
-            mkdir -p /artifacts/bin
-            mkdir -p /artifacts/lib
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /artifacts/bin
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /artifacts/lib
-            cp bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar /host_repo/upstream
-            cp lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so /host_repo/src/main/resources/linux-aarch64/
-            cd /host_repo
-            mvn -B install -DskipTests
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            ..
+          make -j4
+
+      - name: Copy Libraries
+        run: |
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64/
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu-arm64
           path: |
-            artifacts/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
-            artifacts/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
 
 
   # macOS x86_64 + Linux x86_64
