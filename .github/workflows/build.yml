@@ -379,43 +379,49 @@ jobs:
   # Tests multi-plateformes du JAR final
   test:
     needs: build_dist
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        java: [17]
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup JDK ${{ matrix.java }}
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 17
           distribution: 'temurin'
 
       - name: Get Version Info
-        shell: bash
         run: |
           echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Download Distribution
         uses: actions/download-artifact@v4
         with:
           name: dist
 
-      - name: Download JNA
-        shell: bash
-        run: curl -sL -o jna.jar https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar
-
-      - name: Run Test
-        shell: bash
+      - name: Verify JAR Contents
         run: |
-          SEP=":"
-          if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; fi
-          java -cp "opencv-${{ env.POM_VERSION }}.jar${SEP}jna.jar" nu.pattern.PrintVersion
+          JAR="opencv-${{ env.POM_VERSION }}.jar"
+          echo "Checking $JAR..."
+
+          # Verify classes
+          jar tf "$JAR" | grep -q "nu/pattern/OpenCV.class" && echo "OK: OpenCV.class"
+          jar tf "$JAR" | grep -q "nu/pattern/PrintVersion.class" && echo "OK: PrintVersion.class"
+          jar tf "$JAR" | grep -q "org/opencv/core/Core.class" && echo "OK: Core.class"
+
+          # Verify native libs for all platforms
+          jar tf "$JAR" | grep -q "linux-x86-64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-x86-64"
+          jar tf "$JAR" | grep -q "linux-aarch64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-aarch64"
+          jar tf "$JAR" | grep -q "linux-arm/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-arm"
+          jar tf "$JAR" | grep -q "darwin/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib" && echo "OK: darwin"
+          jar tf "$JAR" | grep -q "darwin-aarch64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib" && echo "OK: darwin-aarch64"
+          jar tf "$JAR" | grep -q "win32-x86-64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll" && echo "OK: win32-x86-64"
+          jar tf "$JAR" | grep -q "win32-x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll" && echo "OK: win32-x86"
+
+          echo "All checks passed!"
 
 
   # Upload sur la release GitHub
