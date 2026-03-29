@@ -411,58 +411,45 @@ jobs:
         run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
 
 
-  # Publication sur GitHub Packages (sur tag uniquement)
-  publish:
-    if: startsWith(github.ref, 'refs/tags/')
-
+  # Upload sur la release GitHub
+  upload-release:
     needs: test
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        java: [17]
+    runs-on: ubuntu-latest
 
-    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup JDK ${{ matrix.java }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ matrix.java }}
-          distribution: 'temurin'
-          server-id: ossrh
-          server-username: OSSRH_USERNAME
-          server-password: OSSRH_PASSWORD
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
-
       - name: Get Version Info
         run: |
           echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
           echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Download Libraries
+      - name: Download All Artifacts
         uses: actions/download-artifact@v4
 
-      - name: Copy Binaries
+      - name: Prepare Assets
         run: |
-          mkdir -p src/main/resources/darwin-aarch64 src/main/resources/linux-arm
-          cp macos-x64/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
-          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin/
-          cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin-aarch64/
-          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-x86-64/
-          cp ubuntu-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-arm/
-          cp ubuntu-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64/
-          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86/
-          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86-64/
+          mkdir -p release-assets
+          cp dist/opencv-${{ env.POM_VERSION }}.jar release-assets/
+          cp dist/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar release-assets/ || :
+          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-x86-64.so
+          cp ubuntu-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-arm.so
+          cp ubuntu-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-aarch64.so
+          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-darwin.dylib
+          cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-darwin-aarch64.dylib
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll release-assets/opencv_java${{ env.OPENCV_VERSION_SHORT }}-win-x64.dll
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll release-assets/opencv_java${{ env.OPENCV_VERSION_SHORT }}-win-x86.dll
 
-      - name: Publish to Apache Maven Central
-        run: mvn -B -e clean deploy -P release-sign-artifacts
+      - name: Upload to Release
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ env.POM_VERSION }}"
+          for asset in release-assets/*; do
+            gh release upload "$TAG" "$asset" --clobber
+          done
