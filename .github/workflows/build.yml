@@ -151,7 +151,7 @@ jobs:
   build_mac_linux_x64:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-13]
         java: [17]
 
     runs-on: ${{ matrix.os }}
