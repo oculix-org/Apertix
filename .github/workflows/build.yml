@@ -406,9 +406,16 @@ jobs:
         with:
           name: dist
 
+      - name: Download JNA
+        shell: bash
+        run: curl -sL -o jna.jar https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar
+
       - name: Run Test
         shell: bash
-        run: java -cp opencv-${{ env.POM_VERSION }}.jar nu.pattern.PrintVersion
+        run: |
+          SEP=":"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; fi
+          java -cp "opencv-${{ env.POM_VERSION }}.jar${SEP}jna.jar" nu.pattern.PrintVersion
 
 
   # Upload sur la release GitHub
