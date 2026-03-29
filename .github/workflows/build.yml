@@ -1,0 +1,479 @@
+name: Build Apertix OpenCV Distribution
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_linux_arm:
+    strategy:
+      matrix:
+        java: [17]
+
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Install Cross-Compiler
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf ant
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D CMAKE_SYSTEM_NAME=Linux \
+            -D CMAKE_SYSTEM_PROCESSOR=armv7l \
+            -D CMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+            -D CMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            ..
+          make -j4
+
+      - name: Copy Libraries
+        run: |
+          mkdir -p src/main/resources/linux-arm
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-arm/
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-arm
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+
+
+  build_linux_arm64:
+    strategy:
+      matrix:
+        java: [17]
+
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            ..
+          make -j4
+
+      - name: Copy Libraries
+        run: |
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64/
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-arm64
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+
+
+  # macOS x86_64 + Linux x86_64
+  build_mac_linux_x64:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        java: [17]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            ..
+          make -j8
+
+      - name: Copy Libraries
+        run: |
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-x86-64/ || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin/ || :
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
+
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os == 'ubuntu-latest' && 'linux-x64' || 'macos-x64' }}
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
+
+
+  # macOS ARM64 (Apple Silicon)
+  build_mac_aarch64:
+    strategy:
+      matrix:
+        java: [17]
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          architecture: aarch64
+          java-version: ${{ matrix.java }}
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV
+        run: |
+          wget https://github.com/opencv/opencv/archive/${{ env.OPENCV_VERSION }}.zip > /dev/null
+          unzip ${{ env.OPENCV_VERSION }} > /dev/null
+          cd opencv-${{ env.OPENCV_VERSION }}
+          mkdir build
+          cd build
+          cmake \
+            -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+            -D BUILD_JAVA=ON \
+            -D BUILD_FAT_JAVA_LIB=ON \
+            -D OPENCV_ENABLE_NONFREE=ON \
+            -D BUILD_SHARED_LIBS=OFF \
+            -D BUILD_PERF_TESTS=OFF \
+            -D BUILD_TESTS=OFF \
+            -D BUILD_EXAMPLES=OFF \
+            -D BUILD_DOCS=OFF \
+            -D BUILD_PACKAGE=OFF \
+            -D BUILD_opencv_python2=OFF \
+            -D BUILD_opencv_python3=OFF \
+            -D BUILD_opencv_apps=OFF \
+            -D BUILD_opencv_gapi=OFF \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            -D CMAKE_APPLE_SILICON_PROCESSOR=arm64 \
+            -D CMAKE_CXX_STANDARD=17 \
+            ..
+          make -j8
+
+      - name: Copy Libraries
+        run: |
+          cp opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream || :
+          cp opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin-aarch64/ || :
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
+
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-aarch64
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
+
+
+  # Windows : téléchargement direct du binaire officiel OpenCV
+  build_windows:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        java: [17]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Download Windows Distribution
+        run: wget -O opencv-${{ env.OPENCV_VERSION }}.exe https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-windows.exe
+
+      - name: Extract Windows Distribution
+        run: 7z x opencv-${{ env.OPENCV_VERSION }}.exe
+
+      - name: Upload Libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-2016
+          path: opencv/build/java
+
+
+  # Assemblage du JAR final avec tous les natifs
+  build_dist:
+    needs: [build_mac_aarch64, build_linux_arm, build_linux_arm64, build_mac_linux_x64, build_windows]
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        java: [17]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Download Libraries
+        uses: actions/download-artifact@v4
+
+      - name: Copy Binaries
+        run: |
+          mkdir -p src/main/resources/darwin-aarch64 src/main/resources/linux-arm
+          cp macos-x64/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar upstream
+          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin/
+          cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin-aarch64/
+          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-x86-64/
+          cp ubuntu-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-arm/
+          cp ubuntu-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64/
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86/
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86-64/
+
+      - name: Build with Maven
+        run: mvn -B install -DskipTests
+
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: target/opencv*
+
+
+  # Tests multi-plateformes du JAR final
+  test:
+    needs: build_dist
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        shell: bash
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Download Distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Verify JAR Contents
+        shell: bash
+        run: |
+          JAR="opencv-${{ env.POM_VERSION }}.jar"
+          echo "=== Checking $JAR contents ==="
+          jar tf "$JAR" | grep -q "nu/pattern/OpenCV.class" && echo "OK: OpenCV.class"
+          jar tf "$JAR" | grep -q "nu/pattern/PrintVersion.class" && echo "OK: PrintVersion.class"
+          jar tf "$JAR" | grep -q "org/opencv/core/Core.class" && echo "OK: Core.class"
+          jar tf "$JAR" | grep -q "linux-x86-64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-x86-64"
+          jar tf "$JAR" | grep -q "linux-aarch64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-aarch64"
+          jar tf "$JAR" | grep -q "linux-arm/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so" && echo "OK: linux-arm"
+          jar tf "$JAR" | grep -q "darwin/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib" && echo "OK: darwin"
+          jar tf "$JAR" | grep -q "darwin-aarch64/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib" && echo "OK: darwin-aarch64"
+          jar tf "$JAR" | grep -q "win32-x86-64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll" && echo "OK: win32-x86-64"
+          jar tf "$JAR" | grep -q "win32-x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll" && echo "OK: win32-x86"
+          echo "=== JAR contents OK ==="
+
+      - name: Resolve JNA via Maven
+        shell: bash
+        run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=net.java.dev.jna:jna:5.14.0 -DoutputDirectory=libs
+
+      - name: Load Native Library via JNA
+        shell: bash
+        run: |
+          SEP=":"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then SEP=";"; fi
+          java -cp "opencv-${{ env.POM_VERSION }}.jar${SEP}libs/jna-5.14.0.jar" nu.pattern.PrintVersion
+
+
+  # Upload sur la release GitHub
+  upload-release:
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Prepare Assets
+        run: |
+          mkdir -p release-assets
+          cp dist/opencv-${{ env.POM_VERSION }}.jar release-assets/
+          cp dist/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar release-assets/ || :
+          cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-x86-64.so
+          cp ubuntu-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-arm.so
+          cp ubuntu-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-linux-aarch64.so
+          cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-darwin.dylib
+          cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib release-assets/libopencv_java${{ env.OPENCV_VERSION_SHORT }}-darwin-aarch64.dylib
+          cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll release-assets/opencv_java${{ env.OPENCV_VERSION_SHORT }}-win-x64.dll
+          cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll release-assets/opencv_java${{ env.OPENCV_VERSION_SHORT }}-win-x86.dll
+
+      - name: Upload to Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ env.POM_VERSION }}"
+          for asset in release-assets/*; do
+            gh release upload "$TAG" "$asset" --clobber
+          done
