@@ -381,7 +381,7 @@ jobs:
     needs: build_dist
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest, ubuntu-22.04]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         java: [17]
 
     runs-on: ${{ matrix.os }}
