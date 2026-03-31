@@ -1,125 +1,166 @@
-# OpenCV 4.3.0 (packaged by [OpenPnP](http://openpnp.org))
+<div align="center">
 
-[OpenCV](http://opencv.org) Java bindings packaged with native libraries, seamlessly delivered as a turn-key Maven dependency.
+<br>
 
-## Fork Notes
+<br>
+<h1>
+  <code>&nbsp;A&nbsp;P&nbsp;E&nbsp;R&nbsp;T&nbsp;I&nbsp;X&nbsp;</code>
+</h1>
+<p><em>From the Latin <strong>apertura</strong> — opening, aperture.</em><br>
+<em>Because every pixel is a window into automation.</em></p>
 
-### Soft Fork
+**OpenCV 4.10.0 Java bindings — packaged with native libraries**
 
-This is a soft fork of Pattern's OpenCV package at https://github.com/PatternConsulting/opencv.
-That package has not been maintained in quite some time and I needed updated OpenCV
-binaries for OpenPnP. I intend to maintain this fork for the foreseeable future
-or until Pattern resumes maintenance of their package.
+<br>
 
-### Backwards Compatibility
+<p>
+  <a href="https://github.com/julienmerconsulting/Apertix/releases"><img src="https://img.shields.io/badge/version-4.10.0--0-blue?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/julienmerconsulting/Apertix/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
+  <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.10.0-red?style=flat-square&logo=opencv" alt="OpenCV"></a>
+  <a href="https://github.com/julienmerconsulting/Apertix/actions"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue?style=flat-square&logo=githubactions" alt="CI"></a>
+</p>
 
-I have left the source code packages and directories the same (nu.pattern)
-and only changed the Maven coordinates in the pom.xml. This way the package
-remains backwards compatible and it is very easy to switch between the
-OpenPnP version and the Pattern version.
+<p>
+  <code>OpenCV 4.10.0</code> &middot; <code>Java 17</code> &middot; <code>JNA</code> &middot; <code>Cross-Platform</code> &middot; <code>Zero Config</code>
+</p>
+
+<br>
+
+> **A maintained fork of [openpnp/opencv](https://github.com/openpnp/opencv), picking up where they left off.**
+>
+> openpnp stopped updating Java bindings at 4.3.0 and native binaries at 4.9.0.
+> Apertix compiles OpenCV 4.10.0 from source — bindings and natives — and delivers them as a single Maven dependency.
+
+</div>
+
+---
+
+<br>
+
+## Why Apertix
+
+The OpenCV Java ecosystem has a gap:
+
+| Project | Java Bindings | Native Binaries | Last Update |
+|---|---|---|---|
+| **opencv/opencv** (upstream) | 4.10.0 | Source only | Active |
+| **openpnp/opencv** | 4.3.0 | 4.9.0 | Feb 2024 |
+| **Apertix** | **4.10.0** | **4.10.0** | **Active** |
+
+Apertix fills that gap. One dependency, all platforms, up-to-date bindings and natives.
+
+<br>
+
+## How it works
+
+```
+opencv/opencv (C++ source)
+    ↓ compiled from source
+Apertix (Java bindings + native libraries)
+    ↓ loaded via JNA
+Your application (or OculiX)
+```
+
+The native library is extracted at runtime from the JAR and loaded automatically via `nu.pattern.OpenCV.loadShared()`. No manual `System.loadLibrary()`, no environment variables, no native library path configuration.
+
+<br>
+
+## Platform Support
+
+| Platform | Architecture | Native Library | Status |
+|---|---|---|---|
+| **Windows** | x86_64 | `opencv_java4100.dll` | Available |
+| **macOS** | x86_64 | `libopencv_java4100.dylib` | Available |
+| **macOS** | ARM64 (Apple Silicon) | `libopencv_java4100.dylib` | In progress |
+| **Linux** | x86_64 | `libopencv_java4100.so` | Available |
+
+<br>
+
+## Quick Start
 
 ### Maven
 
-To use this fork in your project, instead of the Pattern one, simply add
-the same dependency but with the groupId org.openpnp instead of nu.pattern.
-
-### Scala
-
-I'm not uploading Scala artifacts as I don't know or use Scala. If someone
-wants to maintain that portion of the package, let me know.
-
-## Usage
-
-### Project
-
-OpenPnP's OpenCV package is added to your project as any other dependency.
-
-#### [Maven](http://maven.apache.org/)
-
 ```xml
-<project>
-  
-  <!-- ... -->
-  
-  <dependencies>
-    
-    <!-- ... -->
-    
-    <dependency>
-      <groupId>org.openpnp</groupId>
-      <artifactId>opencv</artifactId>
-      <version>4.3.0-1</version>
-    </dependency>
-    
-    <!-- ... -->
-    
-  </dependencies>
-  
-  <!-- ... -->
-  
-</project>
+<dependency>
+  <groupId>io.github.julienmerconsulting.apertix</groupId>
+  <artifactId>opencv</artifactId>
+  <version>4.10.0-0</version>
+</dependency>
 ```
 
-### API
-
-Typically, using the upstream [OpenCV Java bindings involves loading the native library](http://docs.opencv.org/doc/tutorials/introduction/desktop_java/java_dev_intro.html#java-sample-with-ant) as follows:
+### Usage
 
 ```java
-static {
-  System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+import nu.pattern.OpenCV;
+import org.opencv.core.Core;
+
+public class Main {
+    public static void main(String[] args) {
+        OpenCV.loadShared();
+        System.out.println("OpenCV version: " + Core.VERSION);
+        // → OpenCV version: 4.10.0
+    }
 }
 ```
 
-Fortunately, this is unchanged except for one caveat. To use the native libraries included with this package, first call [`nu.pattern.OpenCV.loadShared()`](https://github.com/PatternConsulting/opencv/blob/master/src/main/java/nu/pattern/OpenCV.java).
+### Backwards Compatibility
 
-This call will—exactly once per class loader—first attempt to load from the system-wide installation (exactly as if `System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);` were called without any preceding steps). If that fails, the loader will select a binary from the package appropriate for the runtime environment's operating system and architecture. It will write that native library to a temporary directory (also defined by the environment), add that directory to `java.library.path`. _This involves writing to disk_, so consider the implications. Temporary files will be garbage-collected on clean shutdown.
+Apertix keeps the same `nu.pattern` package structure as openpnp/opencv. Switching is a one-line change in your `pom.xml` — replace the `groupId` from `org.openpnp` to `io.github.julienmerconsulting.apertix`. No code changes required.
 
-This approach keeps most clients decoupled from Pattern's package and loader. As long as this is done sufficiently early in execution, any library using the OpenCV Java bindings can use the usual load call as documented by the OpenCV project.
+<br>
 
-There are, however, cases where Java class loaders are frequently changing (_e.g._, application servers, SBT projects, Scala worksheets), and [spurious attempts to load the native library will result in JNI errors](https://github.com/PatternConsulting/opencv/issues/7). As a partial work-around, this package offers an alternative API, [`nu.pattern.OpenCV.loadLocally()`](https://github.com/PatternConsulting/opencv/blob/master/src/main/java/nu/pattern/OpenCV.java), which—also exactly once per class loader—extracts the binary appropriate for the runtime platform, and passes it to `System#load(String)`. Ultimately, this may eventually load the library redundantly in the same JVM, which could be unsafe in production. Use with caution and understand the implications.
+## What changed from openpnp
 
-It's recommended developers using any JNI library read further:
+| Change | Details |
+|---|---|
+| **OpenCV version** | 4.3.0 bindings → **4.10.0** bindings compiled from source |
+| **Native binaries** | 4.9.0 → **4.10.0** compiled from source |
+| **Java version** | Java 8 → **Java 17** recommended |
+| **CI/CD** | Added GitHub Actions workflows for multi-platform builds |
+| **Windows DLL** | `opencv_java4100.dll` compiled with MSVC from OpenCV 4.10.0 source |
+| **macOS dylib** | Build workflow via GitHub Actions runners (macOS ARM64 in progress) |
+| **Linux .so** | Build workflow via GitHub Actions runners |
+| **Maven coordinates** | `org.openpnp:opencv` → `io.github.julienmerconsulting.apertix:opencv` |
+| **Package structure** | `nu.pattern` preserved — drop-in replacement |
 
-- [JNI 1.2 Specifications: Library and Version Management](http://docs.oracle.com/javase/7/docs/technotes/guides/jni/jni-12.html#libmanage)
-- [Holger Hoffstätte's Comments on Native Libraries, Class Loaders, and Garbage Collection](https://groups.google.com/forum/#!msg/ospl-developer/J4i6cF6yPk0/-3Jm3Qs_HDwJ)
+<br>
 
-## Debugging
+## Building from Source
 
-[Java logging](http://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html) is used to produce log messages from `nu.pattern.OpenCV`.
+```bash
+# Clone
+git clone https://github.com/julienmerconsulting/Apertix.git
+cd Apertix
 
-## Rationale
+# Build and test
+mvn clean test
 
-Developers wishing to use the Java API for OpenCV would typically go through the process of building the project, and building it for each platform they wished to support (_e.g._, 32-bit Linux, OS X). This project provides those binaries for inclusion as a typical dependency in Maven, Ivy, and SBT projects.
+# Install locally
+mvn clean install -DskipTests
+```
 
-Apart from testing, this package deliberately specifies no external dependencies. It does, however, make use of modern Java APIs (such as [Java NIO](http://docs.oracle.com/javase/tutorial/essential/io/fileio.html)).
+The CI/CD pipeline compiles OpenCV native libraries from source on each platform using GitHub Actions runners. The `build_dist` job assembles all native binaries into a single fat JAR.
 
-## Contributing
+<br>
 
-Producing native binaries is the most cumbersome process in maintaining this package. If you can contribute binaries _for the current version_, please make a pull request including the build artifacts and any platform definitions in `nu.pattern.OpenCV`.
+## Used by
 
-## Support
+Apertix is the computer vision engine behind [**OculiX**](https://github.com/julienmerconsulting/Oculix) — the actively maintained continuation of SikuliX, providing visual automation for desktops, POS terminals, kiosks, and Android devices.
 
-The following platforms are supported by this package:
+<br>
 
-**IMPORTANT NOTE**: On Windows the Desktop Experience Feature is required because the opencv DLL is linked against several of the libraries provided by the Desktop Experience Feature.  If the Desktop Experience Feature is not installed the opencv DLL will fail to load.
+---
 
-OS | Architecture
---- | ---
-OS X | x86_32
-OS X | x86_64
-Linux | x86_64
-Linux | x86_32
-Windows | x86_32 (w/ Desktop Experience Feature)
-Windows | x86_64 (w/ Desktop Experience Feature)
-
-If you can help create binaries for additional platforms, please see notes under [_Contributing_](#contributing).
-
-## Credits
-
-This package is maintained by [Jason von Nieda](http://github.com/vonnieda).
-  
-## Acknowledgements
-
-- [Michael Ahlers](http://github.com/michaelahlers), for originally creating and maintaining this project.
-- [Greg Borenstein](https://github.com/atduskgreg), whose advice and [OpenCV for Processing](https://github.com/atduskgreg/opencv-processing) project informed this package's development. 
-- [Alex Osborne](https://github.com/ato), for helpful [utility class producing temporary directories with Java NIO that are properly garbage-collected on shutdown](https://gist.github.com/ato/6774390).
+<div align="center">
+  <br>
+  <p>
+    <strong>Apertix</strong> &mdash; OpenCV for Java, maintained and up-to-date
+  </p>
+  <p>
+    Maintained by <a href="https://github.com/julienmerconsulting">Julien MER</a> &middot;
+    Original package by <a href="https://github.com/PatternConsulting/opencv">Pattern Consulting</a> &middot;
+    Forked from <a href="https://github.com/openpnp/opencv">openpnp</a> &middot;
+    <a href="https://github.com/julienmerconsulting/Apertix/blob/master/LICENSE">MIT License</a>
+  </p>
+  <br>
+</div>
