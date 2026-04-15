@@ -1,3 +1,29 @@
+# Apertix 4.10.0-2
+
+## Bug fixes
+
+- **Fix: disable OpenCV `obsensor` module (broken Orbbec linkage on macOS).**
+  OpenCV 4.10.0 introduced the `obsensor` module (Orbbec depth camera
+  support) which is enabled by default in the build. On macOS, the
+  resulting `libopencv_java4100.dylib` is linked against
+  `@loader_path/libOrbbecSDK.1.9.dylib`, a library that is **not** bundled
+  in the Apertix JAR. The first OpenCV call (`new Mat()`, `Imgproc.*`,
+  `nu.pattern.OpenCV.loadLocally()`, etc.) therefore failed systematically
+  with:
+  ```
+  UnsatisfiedLinkError: dlopen(libopencv_java4100.dylib, 0x0001):
+    Library not loaded: @loader_path/libOrbbecSDK.1.9.dylib
+  ```
+  All CMake invocations in the CI workflows now pass
+  `-D WITH_OBSENSOR=OFF -D BUILD_opencv_obsensor=OFF`, which removes the
+  dependency cleanly instead of shipping the Orbbec SDK.
+
+  Linux and Windows natives of 4.10.0-1 were already clean of any Orbbec
+  reference, so this release is functionally identical to 4.10.0-1 on
+  those platforms.
+
+---
+
 # Apertix 4.10.0-0
 
 Fork of [openpnp/opencv](https://github.com/openpnp/opencv) packaging
