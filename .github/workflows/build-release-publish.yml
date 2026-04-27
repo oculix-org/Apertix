@@ -280,8 +280,167 @@ jobs:
           name: windows-2016
           path: opencv/build/java
 
+  build_linux_x64_legacy:
+    # Builds libopencv_java4100.so against glibc 2.28 (manylinux_2_28) so the
+    # native works on RHEL/Rocky/Alma 8+ (2.28), Ubuntu 22.04 (2.35), Debian 12
+    # (2.36), RHEL 9 (2.34) and any newer distro. The modern build_mac_linux_x64
+    # job stays unchanged and continues to ship libopencv_java4100.so under
+    # linux-x86-64/.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV in manylinux_2_28 (x86_64)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/io -w /io \
+            -e OPENCV_VERSION=${{ env.OPENCV_VERSION }} \
+            quay.io/pypa/manylinux_2_28_x86_64 \
+            /bin/bash -ec '
+              yum install -y -q java-17-openjdk-devel ant wget unzip
+              export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+              wget -q https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
+              unzip -q ${OPENCV_VERSION}.zip
+              cd opencv-${OPENCV_VERSION}
+              mkdir build && cd build
+              cmake \
+                -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+                -D BUILD_JAVA=ON \
+                -D BUILD_FAT_JAVA_LIB=ON \
+                -D OPENCV_ENABLE_NONFREE=ON \
+                -D BUILD_SHARED_LIBS=OFF \
+                -D BUILD_PERF_TESTS=OFF \
+                -D BUILD_TESTS=OFF \
+                -D BUILD_EXAMPLES=OFF \
+                -D BUILD_DOCS=OFF \
+                -D BUILD_PACKAGE=OFF \
+                -D BUILD_opencv_python2=OFF \
+                -D BUILD_opencv_python3=OFF \
+                -D BUILD_opencv_apps=OFF \
+                -D BUILD_opencv_gapi=OFF \
+                -D WITH_OBSENSOR=OFF \
+                -D BUILD_opencv_obsensor=OFF \
+                -D CMAKE_BUILD_TYPE=RELEASE \
+                ..
+              make -j$(nproc)
+            '
+
+      - name: Verify GLIBC compatibility (must be <= 2.28)
+        run: |
+          SO="opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so"
+          ALL=$(objdump -T "$SO" | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sort -Vu)
+          MAX=$(printf "%s" "$ALL" | tail -1)
+          echo "=== GLIBC symbols referenced by $SO ==="
+          printf "%s\n" "$ALL"
+          echo "=== Max GLIBC requirement: $MAX ==="
+          HIGHEST=$(printf "%s\nGLIBC_2.28\n" "$MAX" | sort -V | tail -1)
+          if [ "$HIGHEST" != "GLIBC_2.28" ]; then
+            echo "ERROR: $SO requires $MAX which is > GLIBC_2.28"
+            exit 1
+          fi
+          echo "OK: max GLIBC requirement is $MAX (<= GLIBC_2.28)"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64-legacy
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+
+  build_linux_arm64_legacy:
+    # aarch64 counterpart of build_linux_x64_legacy. Same manylinux_2_28
+    # toolchain, same CMake flags, same GLIBC <= 2.28 guarantee.
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Get Version Info
+        run: |
+          echo "POM_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.long -q -DforceStdout)" >> $GITHUB_ENV
+          echo "OPENCV_VERSION_SHORT=$(mvn build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Build OpenCV in manylinux_2_28 (aarch64)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/io -w /io \
+            -e OPENCV_VERSION=${{ env.OPENCV_VERSION }} \
+            quay.io/pypa/manylinux_2_28_aarch64 \
+            /bin/bash -ec '
+              yum install -y -q java-17-openjdk-devel ant wget unzip
+              export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+              wget -q https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
+              unzip -q ${OPENCV_VERSION}.zip
+              cd opencv-${OPENCV_VERSION}
+              mkdir build && cd build
+              cmake \
+                -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
+                -D BUILD_JAVA=ON \
+                -D BUILD_FAT_JAVA_LIB=ON \
+                -D OPENCV_ENABLE_NONFREE=ON \
+                -D BUILD_SHARED_LIBS=OFF \
+                -D BUILD_PERF_TESTS=OFF \
+                -D BUILD_TESTS=OFF \
+                -D BUILD_EXAMPLES=OFF \
+                -D BUILD_DOCS=OFF \
+                -D BUILD_PACKAGE=OFF \
+                -D BUILD_opencv_python2=OFF \
+                -D BUILD_opencv_python3=OFF \
+                -D BUILD_opencv_apps=OFF \
+                -D BUILD_opencv_gapi=OFF \
+                -D WITH_OBSENSOR=OFF \
+                -D BUILD_opencv_obsensor=OFF \
+                -D CMAKE_BUILD_TYPE=RELEASE \
+                ..
+              make -j$(nproc)
+            '
+
+      - name: Verify GLIBC compatibility (must be <= 2.28)
+        run: |
+          SO="opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so"
+          ALL=$(objdump -T "$SO" | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sort -Vu)
+          MAX=$(printf "%s" "$ALL" | tail -1)
+          echo "=== GLIBC symbols referenced by $SO ==="
+          printf "%s\n" "$ALL"
+          echo "=== Max GLIBC requirement: $MAX ==="
+          HIGHEST=$(printf "%s\nGLIBC_2.28\n" "$MAX" | sort -V | tail -1)
+          if [ "$HIGHEST" != "GLIBC_2.28" ]; then
+            echo "ERROR: $SO requires $MAX which is > GLIBC_2.28"
+            exit 1
+          fi
+          echo "OK: max GLIBC requirement is $MAX (<= GLIBC_2.28)"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64-legacy
+          path: |
+            opencv-${{ env.OPENCV_VERSION }}/build/bin/opencv-${{ env.OPENCV_VERSION_SHORT }}.jar
+            opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so
+
   build_dist:
-    needs: [build_mac_aarch64, build_linux_arm, build_linux_arm64, build_mac_linux_x64, build_windows]
+    needs: [build_mac_aarch64, build_linux_arm, build_linux_arm64, build_mac_linux_x64, build_windows, build_linux_x64_legacy, build_linux_arm64_legacy]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -313,15 +472,19 @@ jobs:
           rm -rf src/main/resources/darwin \
                  src/main/resources/darwin-aarch64 \
                  src/main/resources/linux-x86-64 \
+                 src/main/resources/linux-x86-64-legacy \
                  src/main/resources/linux-arm \
                  src/main/resources/linux-aarch64 \
+                 src/main/resources/linux-aarch64-legacy \
                  src/main/resources/win32-x86 \
                  src/main/resources/win32-x86-64
           mkdir -p src/main/resources/darwin \
                    src/main/resources/darwin-aarch64 \
                    src/main/resources/linux-x86-64 \
+                   src/main/resources/linux-x86-64-legacy \
                    src/main/resources/linux-arm \
                    src/main/resources/linux-aarch64 \
+                   src/main/resources/linux-aarch64-legacy \
                    src/main/resources/win32-x86 \
                    src/main/resources/win32-x86-64
 
@@ -331,8 +494,10 @@ jobs:
           cp macos-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin/
           cp macos-aarch64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib src/main/resources/darwin-aarch64/
           cp linux-x64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-x86-64/
+          cp linux-x64-legacy/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-x86-64-legacy/
           cp ubuntu-arm/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-arm/
           cp ubuntu-arm64/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64/
+          cp linux-arm64-legacy/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.so src/main/resources/linux-aarch64-legacy/
           cp windows-2016/x86/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86/
           cp windows-2016/x64/opencv_java${{ env.OPENCV_VERSION_SHORT }}.dll src/main/resources/win32-x86-64/
 
@@ -343,8 +508,8 @@ jobs:
           find src/main/resources -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
 
           COUNT=$(find src/main/resources -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | wc -l)
-          if [ "$COUNT" -ne 7 ]; then
-            echo "ERROR: expected 7 natives, found $COUNT"
+          if [ "$COUNT" -ne 9 ]; then
+            echo "ERROR: expected 9 natives, found $COUNT"
             exit 1
           fi
 
@@ -355,7 +520,7 @@ jobs:
             echo "$WRONG"
             exit 1
           fi
-          echo "OK: 7 natives in version ${{ env.OPENCV_VERSION_SHORT }}"
+          echo "OK: 9 natives in version ${{ env.OPENCV_VERSION_SHORT }}"
 
       - name: Build, Test and Deploy to Maven Central
         run: mvn -B deploy -P release
@@ -406,13 +571,15 @@ jobs:
 
           cp dist/opencv-${VERSION}.jar release-assets/ || cp dist/*.jar release-assets/
 
-          cp linux-x64/lib/libopencv_java${SHORT}.so          release-assets/libopencv_java${SHORT}-linux-x86-64.so
-          cp ubuntu-arm/lib/libopencv_java${SHORT}.so         release-assets/libopencv_java${SHORT}-linux-arm.so
-          cp ubuntu-arm64/lib/libopencv_java${SHORT}.so       release-assets/libopencv_java${SHORT}-linux-aarch64.so
-          cp macos-x64/lib/libopencv_java${SHORT}.dylib       release-assets/libopencv_java${SHORT}-darwin.dylib
-          cp macos-aarch64/lib/libopencv_java${SHORT}.dylib   release-assets/libopencv_java${SHORT}-darwin-aarch64.dylib
-          cp windows-2016/x64/opencv_java${SHORT}.dll         release-assets/opencv_java${SHORT}-win-x64.dll
-          cp windows-2016/x86/opencv_java${SHORT}.dll         release-assets/opencv_java${SHORT}-win-x86.dll
+          cp linux-x64/lib/libopencv_java${SHORT}.so              release-assets/libopencv_java${SHORT}-linux-x86-64.so
+          cp linux-x64-legacy/lib/libopencv_java${SHORT}.so       release-assets/libopencv_java${SHORT}-linux-x86-64-legacy.so
+          cp ubuntu-arm/lib/libopencv_java${SHORT}.so             release-assets/libopencv_java${SHORT}-linux-arm.so
+          cp ubuntu-arm64/lib/libopencv_java${SHORT}.so           release-assets/libopencv_java${SHORT}-linux-aarch64.so
+          cp linux-arm64-legacy/lib/libopencv_java${SHORT}.so     release-assets/libopencv_java${SHORT}-linux-aarch64-legacy.so
+          cp macos-x64/lib/libopencv_java${SHORT}.dylib           release-assets/libopencv_java${SHORT}-darwin.dylib
+          cp macos-aarch64/lib/libopencv_java${SHORT}.dylib       release-assets/libopencv_java${SHORT}-darwin-aarch64.dylib
+          cp windows-2016/x64/opencv_java${SHORT}.dll             release-assets/opencv_java${SHORT}-win-x64.dll
+          cp windows-2016/x86/opencv_java${SHORT}.dll             release-assets/opencv_java${SHORT}-win-x86.dll
 
           echo "=== Release assets ==="
           ls -lh release-assets/
@@ -425,7 +592,7 @@ jobs:
           if ! gh release view "$TAG" > /dev/null 2>&1; then
             gh release create "$TAG" \
               --title "Apertix OpenCV ${{ steps.version.outputs.VERSION }}" \
-              --notes "OpenCV ${{ steps.version.outputs.OPENCV_SHORT }} packaged with native libraries for Linux (x86_64, ARM, ARM64), macOS (x86_64, ARM64) and Windows (x86, x86_64)." \
+              --notes "OpenCV ${{ steps.version.outputs.OPENCV_SHORT }} packaged with native libraries for Linux (x86_64 modern + legacy glibc 2.28, ARM, ARM64 modern + legacy glibc 2.28), macOS (x86_64, ARM64) and Windows (x86, x86_64)." \
               --target master
           fi
 

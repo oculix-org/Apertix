@@ -1,3 +1,46 @@
+# Apertix 4.10.0-3
+
+## New features
+
+- **Dual Linux build: modern + legacy glibc.** Each Linux native is now
+  shipped twice in the JAR — the existing modern build at the previous
+  resource paths, plus a new legacy build compiled inside
+  `quay.io/pypa/manylinux_2_28_*` against glibc 2.28. The legacy native
+  works on RHEL/Rocky/Alma 8 and 9, Ubuntu 22.04, Debian 12 and any newer
+  distro, fixing the `GLIBC_2.38 not found` `UnsatisfiedLinkError` users
+  hit on those systems with 4.10.0-2.
+
+  ```
+  linux-x86-64/libopencv_java4100.so          (modern, unchanged)
+  linux-x86-64-legacy/libopencv_java4100.so   (NEW, glibc <= 2.28)
+  linux-aarch64/libopencv_java4100.so         (modern, unchanged)
+  linux-aarch64-legacy/libopencv_java4100.so  (NEW, glibc <= 2.28)
+  ```
+
+  Both natives are built from the same OpenCV 4.10.0 sources with the
+  same CMake flags; only the toolchain differs.
+
+  CI fails the build if the legacy native references any GLIBC symbol
+  newer than 2.28 (`objdump -T | grep GLIBC | sort -V | tail -1`).
+
+## Compatibility
+
+- **Strictly backwards compatible.** No Java class changed. The default
+  `nu.pattern.OpenCV.loadLocally()` keeps loading the modern native, so
+  existing consumers are unaffected. The new `*-legacy/` paths are an
+  opt-in addition: consumers running on glibc < 2.38 detect their glibc
+  version and load `linux-x86-64-legacy/libopencv_java4100.so` (or the
+  aarch64 equivalent) via `ClassLoader.getResourceAsStream`.
+
+- macOS, Windows and Linux ARMv7 builds are untouched (single tier).
+
+## Size impact
+
+- ~140 MB added to the JAR (two extra ~66 MB Linux natives). One-time
+  download per consumer, cached locally by Maven.
+
+---
+
 # Apertix 4.10.0-2
 
 ## Bug fixes

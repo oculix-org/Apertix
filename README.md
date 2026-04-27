@@ -14,7 +14,7 @@
 <br>
 
 <p>
-  <a href="https://github.com/julienmerconsulting/Apertix/releases"><img src="https://img.shields.io/badge/version-4.10.0--2-blue?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/julienmerconsulting/Apertix/releases"><img src="https://img.shields.io/badge/version-4.10.0--3-blue?style=flat-square" alt="Version"></a>
   <a href="https://github.com/julienmerconsulting/Apertix/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.10.0-red?style=flat-square&logo=opencv" alt="OpenCV"></a>
   <a href="https://github.com/julienmerconsulting/Apertix/actions"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue?style=flat-square&logo=githubactions" alt="CI"></a>
@@ -73,9 +73,17 @@ The native library is extracted at runtime from the JAR and loaded automatically
 | **Windows** | x86 (32-bit) | `opencv_java4100.dll` | Available |
 | **macOS** | x86_64 | `libopencv_java4100.dylib` | Available |
 | **macOS** | ARM64 (Apple Silicon) | `libopencv_java4100.dylib` | Available |
-| **Linux** | x86_64 | `libopencv_java4100.so` | Available |
-| **Linux** | ARM64 (aarch64) | `libopencv_java4100.so` | Available |
-| **Linux** | ARM (armv7) | `libopencv_java4100.so` | Available |
+| **Linux** | x86_64 (modern, glibc &ge; 2.35) | `linux-x86-64/libopencv_java4100.so` | Available |
+| **Linux** | x86_64 (legacy, glibc &ge; 2.28) | `linux-x86-64-legacy/libopencv_java4100.so` | Available |
+| **Linux** | ARM64 / aarch64 (modern) | `linux-aarch64/libopencv_java4100.so` | Available |
+| **Linux** | ARM64 / aarch64 (legacy, glibc &ge; 2.28) | `linux-aarch64-legacy/libopencv_java4100.so` | Available |
+| **Linux** | ARM (armv7) | `linux-arm/libopencv_java4100.so` | Available |
+
+The `*-legacy` Linux natives are compiled inside `quay.io/pypa/manylinux_2_28_*`
+and only reference glibc symbols up to 2.28, so they run on RHEL/Rocky/Alma 8
+and 9, Ubuntu 22.04, Debian 12 and any newer distro. The default
+`nu.pattern.OpenCV.loadLocally()` keeps loading the modern native; switching
+to legacy is opt-in via `ClassLoader.getResourceAsStream`.
 
 <br>
 
