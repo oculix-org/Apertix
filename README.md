@@ -14,7 +14,7 @@
 <br>
 
 <p>
-  <a href="https://github.com/julienmerconsulting/Apertix/releases"><img src="https://img.shields.io/badge/version-4.10.0--0-blue?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/julienmerconsulting/Apertix/releases"><img src="https://img.shields.io/badge/version-4.10.0--2-blue?style=flat-square" alt="Version"></a>
   <a href="https://github.com/julienmerconsulting/Apertix/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.10.0-red?style=flat-square&logo=opencv" alt="OpenCV"></a>
   <a href="https://github.com/julienmerconsulting/Apertix/actions"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue?style=flat-square&logo=githubactions" alt="CI"></a>
@@ -70,9 +70,12 @@ The native library is extracted at runtime from the JAR and loaded automatically
 | Platform | Architecture | Native Library | Status |
 |---|---|---|---|
 | **Windows** | x86_64 | `opencv_java4100.dll` | Available |
+| **Windows** | x86 (32-bit) | `opencv_java4100.dll` | Available |
 | **macOS** | x86_64 | `libopencv_java4100.dylib` | Available |
-| **macOS** | ARM64 (Apple Silicon) | `libopencv_java4100.dylib` | In progress |
+| **macOS** | ARM64 (Apple Silicon) | `libopencv_java4100.dylib` | Available |
 | **Linux** | x86_64 | `libopencv_java4100.so` | Available |
+| **Linux** | ARM64 (aarch64) | `libopencv_java4100.so` | Available |
+| **Linux** | ARM (armv7) | `libopencv_java4100.so` | Available |
 
 <br>
 
@@ -84,7 +87,7 @@ The native library is extracted at runtime from the JAR and loaded automatically
 <dependency>
   <groupId>io.github.julienmerconsulting.apertix</groupId>
   <artifactId>opencv</artifactId>
-  <version>4.10.0-0</version>
+  <version>4.10.0-2</version>
 </dependency>
 ```
 
@@ -118,8 +121,8 @@ Apertix keeps the same `nu.pattern` package structure as openpnp/opencv. Switchi
 | **Java version** | Java 8 → **Java 17** recommended |
 | **CI/CD** | Added GitHub Actions workflows for multi-platform builds |
 | **Windows DLL** | `opencv_java4100.dll` compiled with MSVC from OpenCV 4.10.0 source |
-| **macOS dylib** | Build workflow via GitHub Actions runners (macOS ARM64 in progress) |
-| **Linux .so** | Build workflow via GitHub Actions runners |
+| **macOS dylib** | Build workflow via GitHub Actions runners (x86_64 + ARM64 Apple Silicon) |
+| **Linux .so** | Build workflow via GitHub Actions runners (x86_64 + ARM64 + ARMv7) |
 | **Maven coordinates** | `org.openpnp:opencv` → `io.github.julienmerconsulting.apertix:opencv` |
 | **Package structure** | `nu.pattern` preserved — drop-in replacement |
 
