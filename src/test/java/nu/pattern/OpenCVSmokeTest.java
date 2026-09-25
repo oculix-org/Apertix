@@ -35,7 +35,7 @@ public class OpenCVSmokeTest {
     public void testCoreVersion() {
         String version = Core.getVersionString();
         assertNotNull(version);
-        assertTrue(version.startsWith("4.10"));
+        assertEquals(Core.VERSION, version);
     }
 
     @Test
