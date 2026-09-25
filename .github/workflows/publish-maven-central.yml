@@ -1,21 +1,24 @@
 name: Publish to Maven Central
+run-name: Publish to Maven Central · ${{ github.ref_name }}
+
+# Manual, and second: it republishes a GitHub release that already exists.
+# The natives and the upstream bindings jar are downloaded from the release
+# whose tag matches the pom version, staged where the pom expects them, and
+# only then deployed. No GitHub release, no publication.
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   publish:
-    needs: []  # à brancher sur build_dist si tu veux chaîner avec le build existant
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -25,7 +28,70 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PASSPHRASE
 
-      - name: Publish to Maven Central
+      - name: Resolve the release tag from the pom version
+        run: |
+          VERSION=$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          SHORT=$(mvn -B -q build-helper:parse-version org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=opencv.version.short -DforceStdout)
+          case "$VERSION" in
+            *-SNAPSHOT) echo "ERROR: pom version $VERSION is a snapshot, Central does not take those"; exit 1 ;;
+          esac
+          echo "POM_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "OPENCV_SHORT=$SHORT" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
+
+      - name: The GitHub release must exist first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "ERROR: no GitHub release $RELEASE_TAG. Tag, let build-and-release.yml publish it, then run this."
+            exit 1
+          fi
+
+      - name: Download the release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p assets
+          gh release download "$RELEASE_TAG" --dir assets \
+            --pattern '*.so' --pattern '*.dylib' --pattern '*.dll' --pattern "opencv-${OPENCV_SHORT}.jar"
+          ls -la assets/
+
+      - name: Stage the natives and the bindings jar where the pom expects them
+        run: |
+          S="$OPENCV_SHORT"
+          for tier in linux-x86-64 linux-x86-64-legacy linux-arm linux-aarch64 linux-aarch64-legacy darwin darwin-aarch64 win32-x86 win32-x86-64; do
+            rm -rf "src/main/resources/$tier"
+            mkdir -p "src/main/resources/$tier"
+          done
+          cp "assets/libopencv_java${S}-linux-x86-64.so"         "src/main/resources/linux-x86-64/libopencv_java${S}.so"
+          cp "assets/libopencv_java${S}-linux-x86-64-legacy.so"  "src/main/resources/linux-x86-64-legacy/libopencv_java${S}.so"
+          cp "assets/libopencv_java${S}-linux-arm.so"            "src/main/resources/linux-arm/libopencv_java${S}.so"
+          cp "assets/libopencv_java${S}-linux-aarch64.so"        "src/main/resources/linux-aarch64/libopencv_java${S}.so"
+          cp "assets/libopencv_java${S}-linux-aarch64-legacy.so" "src/main/resources/linux-aarch64-legacy/libopencv_java${S}.so"
+          cp "assets/libopencv_java${S}-darwin.dylib"            "src/main/resources/darwin/libopencv_java${S}.dylib"
+          cp "assets/libopencv_java${S}-darwin-aarch64.dylib"    "src/main/resources/darwin-aarch64/libopencv_java${S}.dylib"
+          cp "assets/opencv_java${S}-win-x64.dll"                "src/main/resources/win32-x86-64/opencv_java${S}.dll"
+          cp "assets/opencv_java${S}-win-x86.dll"                "src/main/resources/win32-x86/opencv_java${S}.dll"
+          mkdir -p upstream
+          cp "assets/opencv-${S}.jar" "upstream/opencv-${S}.jar"
+
+      - name: Verify the staged payload
+        run: |
+          find src/main/resources -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
+          COUNT=$(find src/main/resources -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | wc -l)
+          if [ "$COUNT" -ne 9 ]; then
+            echo "ERROR: expected 9 natives, found $COUNT"
+            exit 1
+          fi
+          WRONG=$(find src/main/resources -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) ! -name "*${OPENCV_SHORT}*")
+          if [ -n "$WRONG" ]; then
+            echo "ERROR: natives with the wrong version:"; echo "$WRONG"; exit 1
+          fi
+          test -s "upstream/opencv-${OPENCV_SHORT}.jar"
+          echo "OK: 9 natives and the bindings jar, version ${OPENCV_SHORT}"
+
+      - name: Deploy to Maven Central
         run: mvn -B deploy -P release -DskipTests
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
