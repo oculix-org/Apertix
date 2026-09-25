@@ -143,7 +143,7 @@ jobs:
   build_mac_linux_x64:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-15-intel]
         java: [17]
     runs-on: ${{ matrix.os }}
     steps:
@@ -189,6 +189,17 @@ jobs:
             -D CMAKE_BUILD_TYPE=RELEASE \
             ..
           make -j8
+
+      - name: The darwin dylib must be x86_64
+        if: runner.os == 'macOS'
+        run: |
+          DYLIB=opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
+          ARCHS=$(lipo -archs "$DYLIB")
+          echo "$DYLIB: $ARCHS"
+          if [ "$ARCHS" != "x86_64" ]; then
+            echo "ERROR: the darwin (Intel) tier must be x86_64, got: $ARCHS"
+            exit 1
+          fi
 
       - name: Upload Libraries
         uses: actions/upload-artifact@v4
@@ -250,6 +261,16 @@ jobs:
             -D CMAKE_CXX_STANDARD=17 \
             ..
           make -j8
+
+      - name: The darwin-aarch64 dylib must be arm64
+        run: |
+          DYLIB=opencv-${{ env.OPENCV_VERSION }}/build/lib/libopencv_java${{ env.OPENCV_VERSION_SHORT }}.dylib
+          ARCHS=$(lipo -archs "$DYLIB")
+          echo "$DYLIB: $ARCHS"
+          if [ "$ARCHS" != "arm64" ]; then
+            echo "ERROR: the darwin-aarch64 tier must be arm64, got: $ARCHS"
+            exit 1
+          fi
 
       - name: Upload Libraries
         uses: actions/upload-artifact@v4
