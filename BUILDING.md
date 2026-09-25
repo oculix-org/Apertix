@@ -69,17 +69,17 @@ when:
 ## Supported platforms
 
 The current CI pipeline produces native libraries for the following targets.
-All binaries are built against **OpenCV 4.10.0**.
+All binaries are built against **OpenCV 4.14.0**.
 
 | Platform         | Architecture | Native file                       | CI runner         | CI job                |
 | ---------------- | ------------ | --------------------------------- | ----------------- | --------------------- |
-| Linux            | x86-64       | `libopencv_java4100.so`           | `ubuntu-latest`   | `build_mac_linux_x64` |
-| Linux            | aarch64      | `libopencv_java4100.so`           | ARM64 native      | `build_linux_arm64`   |
-| Linux            | ARMv7        | `libopencv_java4100.so`           | ARM native        | `build_linux_arm`     |
-| macOS            | x86-64       | `libopencv_java4100.dylib`        | `macos-latest`    | `build_mac_linux_x64` |
-| macOS            | aarch64      | `libopencv_java4100.dylib`        | `macos-14`        | `build_mac_aarch64`   |
-| Windows          | x86-64       | `opencv_java4100.dll`             | `ubuntu-latest`   | `build_windows`       |
-| Windows          | x86-32       | `opencv_java4100.dll`             | `ubuntu-latest`   | `build_windows`       |
+| Linux            | x86-64       | `libopencv_java4140.so`           | `ubuntu-latest`   | `build_mac_linux_x64` |
+| Linux            | aarch64      | `libopencv_java4140.so`           | ARM64 native      | `build_linux_arm64`   |
+| Linux            | ARMv7        | `libopencv_java4140.so`           | ARM native        | `build_linux_arm`     |
+| macOS            | x86-64       | `libopencv_java4140.dylib`        | `macos-15-intel` | `build_mac_linux_x64` |
+| macOS            | aarch64      | `libopencv_java4140.dylib`        | `macos-14`        | `build_mac_aarch64`   |
+| Windows          | x86-64       | `opencv_java4140.dll`             | `ubuntu-latest`   | `build_windows`       |
+| Windows          | x86-32       | `opencv_java4140.dll`             | `ubuntu-latest`   | `build_windows`       |
 
 Note that the Windows job does not compile OpenCV from source — it downloads
 the official OpenCV Windows installer from the upstream GitHub releases and
@@ -97,19 +97,19 @@ platform-specific resource directories following the JNA naming convention:
 ```
 src/main/resources/
 ├── darwin/                    # macOS Intel
-│   └── libopencv_java4100.dylib
+│   └── libopencv_java4140.dylib
 ├── darwin-aarch64/            # macOS Apple Silicon
-│   └── libopencv_java4100.dylib
+│   └── libopencv_java4140.dylib
 ├── linux-x86-64/              # Linux x86-64
-│   └── libopencv_java4100.so
+│   └── libopencv_java4140.so
 ├── linux-aarch64/             # Linux ARM64
-│   └── libopencv_java4100.so
+│   └── libopencv_java4140.so
 ├── linux-arm/                 # Linux ARMv7
-│   └── libopencv_java4100.so
+│   └── libopencv_java4140.so
 ├── win32-x86-64/              # Windows x86-64
-│   └── opencv_java4100.dll
+│   └── opencv_java4140.dll
 └── win32-x86/                 # Windows x86-32
-    └── opencv_java4100.dll
+    └── opencv_java4140.dll
 ```
 
 At runtime, the JNA-based loader inspects the current OS and architecture and
@@ -156,9 +156,9 @@ sudo apt-get install -y build-essential cmake git unzip wget \
 Download and extract the OpenCV source:
 
 ```bash
-wget https://github.com/opencv/opencv/archive/4.10.0.zip
-unzip 4.10.0.zip
-cd opencv-4.10.0
+wget https://github.com/opencv/opencv/archive/4.14.0.zip
+unzip 4.14.0.zip
+cd opencv-4.14.0
 mkdir build && cd build
 ```
 
@@ -190,11 +190,11 @@ Build:
 make -j$(nproc)
 ```
 
-The resulting `libopencv_java4100.so` will be in `opencv-4.10.0/build/lib/`.
+The resulting `libopencv_java4140.so` will be in `opencv-4.14.0/build/lib/`.
 Copy it into the Apertix tree:
 
 ```bash
-cp opencv-4.10.0/build/lib/libopencv_java4100.so \
+cp opencv-4.14.0/build/lib/libopencv_java4140.so \
    /path/to/Apertix/src/main/resources/linux-x86-64/
 ```
 
@@ -217,7 +217,7 @@ Install the same packages as for Linux x86-64, then follow the exact same
 cmake and make commands. The OpenCV build system auto-detects the aarch64
 architecture and emits the correct object code.
 
-Copy the resulting `libopencv_java4100.so` into
+Copy the resulting `libopencv_java4140.so` into
 `src/main/resources/linux-aarch64/`.
 
 ---
@@ -251,9 +251,9 @@ brew install cmake wget
 Then follow the standard OpenCV build commands:
 
 ```bash
-wget https://github.com/opencv/opencv/archive/4.10.0.zip
-unzip 4.10.0.zip
-cd opencv-4.10.0
+wget https://github.com/opencv/opencv/archive/4.14.0.zip
+unzip 4.14.0.zip
+cd opencv-4.14.0
 mkdir build && cd build
 cmake \
   -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
@@ -275,7 +275,7 @@ cmake \
 make -j$(sysctl -n hw.ncpu)
 ```
 
-Copy the resulting `libopencv_java4100.dylib` into
+Copy the resulting `libopencv_java4140.dylib` into
 `src/main/resources/darwin/`.
 
 ---
@@ -296,9 +296,9 @@ downstream consumer gets the same feature coverage as on other platforms:
 
 ```bash
 brew install cmake wget
-wget https://github.com/opencv/opencv/archive/4.10.0.zip
-unzip 4.10.0.zip
-cd opencv-4.10.0
+wget https://github.com/opencv/opencv/archive/4.14.0.zip
+unzip 4.14.0.zip
+cd opencv-4.14.0
 mkdir build && cd build
 cmake \
   -D OPENCV_FORCE_3RDPARTY_BUILD=ON \
@@ -327,7 +327,7 @@ The key flags that differentiate this from the Intel build are
 and `CMAKE_CXX_STANDARD=17` (which is required by some of the Apple Silicon
 codepaths).
 
-Copy the resulting `libopencv_java4100.dylib` into
+Copy the resulting `libopencv_java4140.dylib` into
 `src/main/resources/darwin-aarch64/`.
 
 ### Option B — Minimal build ([@RaiMan](https://github.com/RaiMan)'s recipe)
@@ -379,7 +379,7 @@ computer vision modules listed above.
   or if Option A fails with module-specific errors on your machine, use
   **Option B**.
 
-Both options produce a `libopencv_java4100.dylib` that loads correctly under
+Both options produce a `libopencv_java4140.dylib` that loads correctly under
 the JNA loader.
 
 ---
@@ -389,22 +389,22 @@ the JNA loader.
 Unlike the Linux and macOS targets, the Windows binaries are **not**
 recompiled from source. The CI pipeline downloads the official OpenCV
 Windows installer from the upstream GitHub releases and extracts the
-prebuilt `opencv_java4100.dll` files directly. This matches the approach
+prebuilt `opencv_java4140.dll` files directly. This matches the approach
 used upstream by `nu.pattern.opencv` and avoids maintaining a second build
 toolchain for Windows.
 
 To reproduce manually:
 
-1. Download `opencv-4.10.0-windows.exe` from
-   <https://github.com/opencv/opencv/releases/tag/4.10.0>
+1. Download `opencv-4.14.0-windows.exe` from
+   <https://github.com/opencv/opencv/releases/tag/4.14.0>
 2. Extract it (it is a self-extracting 7-Zip archive — use `7z x` or
    double-click on Windows).
 3. Locate the two DLLs:
-   - `opencv/build/java/x64/opencv_java4100.dll`
-   - `opencv/build/java/x86/opencv_java4100.dll`
+   - `opencv/build/java/x64/opencv_java4140.dll`
+   - `opencv/build/java/x86/opencv_java4140.dll`
 4. Copy them into the Apertix resources:
-   - `src/main/resources/win32-x86-64/opencv_java4100.dll`
-   - `src/main/resources/win32-x86/opencv_java4100.dll`
+   - `src/main/resources/win32-x86-64/opencv_java4140.dll`
+   - `src/main/resources/win32-x86/opencv_java4140.dll`
 
 Both files come directly from the upstream OpenCV release and are therefore
 bit-for-bit identical to what any other OpenCV Java consumer on Windows
@@ -427,14 +427,14 @@ fan-out / fan-in DAG:
 ```
 
 Each leaf job produces a GitHub Actions artifact containing the native
-library and (where applicable) the upstream `opencv-4100.jar`. The
+library and (where applicable) the upstream `opencv-4140.jar`. The
 `build_dist` job downloads every artifact, assembles the Apertix fat JAR
 containing all platforms, and runs the JNA-based smoke tests to verify that
 each native library loads correctly on its matching runner.
 
 Finally, `upload-release` pushes every native library and the fat JAR as
 assets on the GitHub release matching the current `pom.xml` version (for
-example, `v4.10.0-0`). Assets are uploaded with `gh release upload --clobber`,
+example, `v4.14.0-0`). Assets are uploaded with `gh release upload --clobber`,
 which means that re-running the workflow will overwrite the existing assets
 in place rather than creating duplicates. Note that `--clobber` updates the
 asset content but does **not** update the release's `published_at` date —
@@ -458,16 +458,16 @@ gh run watch --repo julienmerconsulting/Apertix
 
 Cutting a new Apertix release involves three steps:
 
-1. **Bump the version in `pom.xml`** (for example from `4.10.0-0` to
-   `4.10.0-1` for a rebuild of the same OpenCV version, or to `4.11.0-0`
+1. **Bump the version in `pom.xml`** (for example from `4.14.0-0` to
+   `4.14.0-1` for a rebuild of the same OpenCV version, or to `4.11.0-0`
    for a new upstream OpenCV). Commit and push the change.
 
 2. **Create an empty GitHub release** with the matching tag:
 
    ```bash
-   gh release create v4.10.0-1 \
+   gh release create v4.14.0-1 \
      --repo julienmerconsulting/Apertix \
-     --title "Apertix 4.10.0-1" \
+     --title "Apertix 4.14.0-1" \
      --notes "See RELEASE_NOTES.md"
    ```
 
@@ -487,7 +487,7 @@ When the workflow completes successfully, verify that all expected assets
 are present:
 
 ```bash
-gh release view v4.10.0-1 --repo julienmerconsulting/Apertix \
+gh release view v4.14.0-1 --repo julienmerconsulting/Apertix \
   --json assets --jq ".assets[] | .name"
 ```
 
@@ -509,7 +509,7 @@ shows the original publication date. This is expected behavior — check the
 `updated_at` date on individual assets instead:
 
 ```bash
-gh release view v4.10.0-0 --repo julienmerconsulting/Apertix \
+gh release view v4.14.0-0 --repo julienmerconsulting/Apertix \
   --json assets --jq ".assets[] | \"\(.name) updated=\(.updatedAt)\""
 ```
 
@@ -521,7 +521,7 @@ the Intel dylib in the aarch64 directory or vice versa. Verify the
 architecture with:
 
 ```bash
-file src/main/resources/darwin-aarch64/libopencv_java4100.dylib
+file src/main/resources/darwin-aarch64/libopencv_java4140.dylib
 ```
 
 You should see `Mach-O 64-bit dynamically linked shared library arm64`.
@@ -556,7 +556,7 @@ The Apertix build pipeline stands on the shoulders of several contributions:
   cross-platform compilation possible at all.
 
 - **[@RaiMan](https://github.com/RaiMan)** (Raimund Hocke), maintainer
-  emeritus of SikuliX, who independently built `libopencv_java4100.dylib`
+  emeritus of SikuliX, who independently built `libopencv_java4140.dylib`
   on Apple Silicon using the minimal cmake recipe documented in
   [Option B](#option-b--minimal-build-raimans-recipe) above. This
   contribution is the first independent validation that the Apertix
