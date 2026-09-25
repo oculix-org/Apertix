@@ -1,10 +1,19 @@
-name: Build, Release and Publish Apertix OpenCV
+name: Build and release
+run-name: Build and release · ${{ github.ref_name }}
+
+# Builds OpenCV's Java bindings and natives on one runner per platform,
+# packages the jar, and publishes a GitHub release with the jar and every
+# native as assets. Nothing goes to Maven Central here: that is
+# publish-maven-central.yml, run by hand once this release exists.
 
 on:
   workflow_dispatch:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: read
 
 jobs:
   build_linux_arm:
@@ -451,11 +460,6 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-          server-id: central
-          server-username: CENTRAL_USERNAME
-          server-password: CENTRAL_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Get Version Info
         run: |
@@ -522,18 +526,14 @@ jobs:
           fi
           echo "OK: 9 natives in version ${{ env.OPENCV_VERSION_SHORT }}"
 
-      - name: Build, Test and Deploy to Maven Central
-        run: mvn -B deploy -P release
-        env:
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Build and test
+        run: mvn -B package
 
       - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: target/opencv*
+          path: target/apertix-*.jar
 
   release:
     needs: build_dist
@@ -569,7 +569,8 @@ jobs:
           SHORT="${{ steps.version.outputs.OPENCV_SHORT }}"
           mkdir -p release-assets
 
-          cp dist/opencv-${VERSION}.jar release-assets/ || cp dist/*.jar release-assets/
+          cp dist/apertix-${VERSION}.jar release-assets/
+          cp macos-x64/bin/opencv-${SHORT}.jar release-assets/
 
           cp linux-x64/lib/libopencv_java${SHORT}.so              release-assets/libopencv_java${SHORT}-linux-x86-64.so
           cp linux-x64-legacy/lib/libopencv_java${SHORT}.so       release-assets/libopencv_java${SHORT}-linux-x86-64-legacy.so
@@ -591,9 +592,8 @@ jobs:
           TAG="v${{ steps.version.outputs.VERSION }}"
           if ! gh release view "$TAG" > /dev/null 2>&1; then
             gh release create "$TAG" \
-              --title "Apertix OpenCV ${{ steps.version.outputs.VERSION }}" \
-              --notes "OpenCV ${{ steps.version.outputs.OPENCV_SHORT }} packaged with native libraries for Linux (x86_64 modern + legacy glibc 2.28, ARM, ARM64 modern + legacy glibc 2.28), macOS (x86_64, ARM64) and Windows (x86, x86_64)." \
-              --target master
+              --title "Apertix ${{ steps.version.outputs.VERSION }}" \
+              --notes "OpenCV ${{ steps.version.outputs.OPENCV_SHORT }} Java bindings packaged with native libraries for Linux (x86_64 modern + legacy glibc 2.28, ARM, ARM64 modern + legacy glibc 2.28), macOS (x86_64, ARM64) and Windows (x86, x86_64). Maven Central publication is a separate, manual step."
           fi
 
       - name: Upload assets to release
