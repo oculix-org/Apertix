@@ -106,9 +106,12 @@ The repository holds no native binary. `git clone` gives you the loader, the tes
 | Step | What happens |
 |---|---|
 | bump `<version>` in `pom.xml`, commit, push | nothing runs yet |
-| `git tag v4.14.0-0 && git push origin v4.14.0-0` | `build-release-publish.yml` starts: seven platform builds in parallel, then `build_dist` |
-| `build_dist` | wipes `src/main/resources/*`, stages the nine fresh natives, refuses to continue unless exactly nine are present and every name carries `4140`, then `mvn deploy -P release` to Maven Central |
-| `release` | creates the GitHub release for the tag if it does not exist and uploads the jar and every native as assets |
+| `git tag v4.14.0-0 && git push origin v4.14.0-0` | `build-and-release.yml` starts: seven platform builds in parallel, then `build_dist` |
+| `build_dist` | wipes `src/main/resources/*`, stages the nine fresh natives, refuses to continue unless exactly nine are present and every name carries `4140`, then `mvn package` with the tests |
+| `release` | creates the GitHub release for the tag and uploads the jar, the nine natives and the `opencv-4140.jar` bindings as assets |
+| `publish-maven-central.yml`, run by hand | refuses to start unless that GitHub release exists, downloads its assets, stages them exactly as `build_dist` did, and only then `mvn deploy -P release` to Maven Central |
+
+GitHub first, Maven Central second: Central is immutable, so nothing reaches it before the release it describes is public and inspectable.
 
 Rebuilding a single native by hand, for example to inspect the Apple Silicon dylib on real hardware, is documented step by step in [BUILDING.md](BUILDING.md).
 
